@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2025–2026 Rohan R @rotsl
 
-.PHONY: help install install-dev test test-cov lint format type-check clean build docs demo benchmark benchmark-api ui
+.PHONY: help install install-dev test test-cov lint format type-check clean build docs demo benchmark benchmark-api precompute serve-mcp benchmark-latency ui
 
 PYTHON := python3
 PIP := $(PYTHON) -m pip
@@ -24,6 +24,9 @@ help:
 	@echo "  demo         Run demo script"
 	@echo "  benchmark    Run benchmark suite"
 	@echo "  benchmark-api Run API benchmark suite (Anthropic)"
+	@echo "  precompute   Precompute context artifacts for a directory"
+	@echo "  serve-mcp    Run MCP-style server"
+	@echo "  benchmark-latency Benchmark pipeline latency"
 	@echo "  ui           Run local Web UI"
 
 install:
@@ -86,6 +89,15 @@ benchmark-rag:
 
 benchmark-api:
 	$(PYTHON) benchmarks/runners/run_api_eval.py
+
+precompute:
+	$(PYTHON) -m $(PACKAGE_NAME) precompute ./data
+
+serve-mcp:
+	$(PYTHON) -m $(PACKAGE_NAME) serve-mcp --host 127.0.0.1 --port 8765
+
+benchmark-latency:
+	$(PYTHON) -m $(PACKAGE_NAME) benchmark-latency ./data --iterations 5
 
 ui:
 	$(PYTHON) -m $(PACKAGE_NAME) ui --host 127.0.0.1 --port 8080

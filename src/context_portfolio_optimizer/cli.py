@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2025–2026 Rohan R @rotsl
+# Copyright (c) 2025-2026 Rohan R @rotsl
 
 """Command-line interface for ContextFusion."""
 
+import json
+from dataclasses import asdict
 from pathlib import Path
-from typing import Optional
+from time import perf_counter
 
 import typer
 from rich.console import Console
@@ -12,14 +14,15 @@ from rich.table import Table
 
 from . import version
 from .allocation.budget import BudgetManager
-from .allocation.portfolio import PortfolioSelector
+from .assembly.compiler import compile_for_provider
 from .exceptions import ConfigurationError
 from .ingestion.dispatcher import IngestionDispatcher
 from .logging_utils import setup_logging
+from .mcp_server.server import run_mcp_server
 from .memory.store import MemoryStore
 from .normalization.block_builder import BlockBuilder
 from .orchestration.runner import PipelineRunner
-from .representations.base_representation import RepresentationGenerator
+from .precompute.runner import PrecomputeRunner
 from .settings import Settings
 
 app = typer.Typer(
@@ -30,7 +33,7 @@ app = typer.Typer(
 console = Console()
 
 
-def get_settings(config: Optional[str] = None) -> Settings:
+def get_settings(config: str | None = None) -> Settings:
     """Load settings from config file."""
     if config:
         try:
@@ -46,7 +49,7 @@ def ingest(
     recursive: bool = typer.Option(
         True, "--recursive/--no-recursive", help="Process directories recursively"
     ),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ):
     """Ingest files and display extracted content."""
@@ -79,7 +82,7 @@ def ingest(
         console.print(f"[green]Processed {len(results)} files from {path}[/green]")
 
         total_blocks = 0
-        for file_path, segments in results.items():
+        for segments in results.values():
             blocks = block_builder.build_blocks(segments)
             total_blocks += len(blocks)
 
@@ -94,10 +97,10 @@ def ingest(
 def plan(
     task: str = typer.Argument(..., help="Task description"),
     budget: int = typer.Option(8000, "--budget", "-b", help="Token budget"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
 ):
     """Plan context optimization for a task."""
-    settings = get_settings(config)
+    get_settings(config)
     budget_manager = BudgetManager.from_total(budget)
 
     from .orchestration.planner import Planner
@@ -107,11 +110,11 @@ def plan(
 
     console.print("[bold]Execution Plan:[/bold]")
     console.print(f"Task: {plan_result['task']}")
-    console.print(f"\nBudget Allocation:")
+    console.print("\nBudget Allocation:")
     for category, tokens in plan_result["budget_allocation"].items():
         console.print(f"  {category}: {tokens} tokens")
 
-    console.print(f"\nPhases:")
+    console.print("\nPhases:")
     for phase in plan_result["phases"]:
         console.print(f"  - {phase['name']}: {phase['description']}")
 
@@ -123,8 +126,9 @@ def plan(
 def run(
     path: str = typer.Argument(..., help="Path to file or directory"),
     budget: int = typer.Option(3000, "--budget", "-b", help="Token budget for retrieval"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output file"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
+    query: str | None = typer.Option(None, "--query", "-q", help="Optional query for retrieval"),
+    output: str | None = typer.Option(None, "--output", "-o", help="Output file"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ):
     """Run full context optimization pipeline."""
@@ -134,22 +138,22 @@ def run(
     path_obj = Path(path)
 
     if path_obj.is_file():
-        result = runner.run([str(path_obj)], budget)
+        result = runner.run([str(path_obj)], budget, query=query)
     elif path_obj.is_dir():
-        result = runner.run_on_directory(str(path_obj), budget=budget)
+        result = runner.run_on_directory(str(path_obj), budget=budget, query=query)
     else:
         console.print(f"[red]Path not found: {path}[/red]")
         raise typer.Exit(1)
 
     # Display results
     console.print("[bold green]Pipeline Complete![/bold green]")
-    console.print(f"\nStats:")
+    console.print("\nStats:")
     for key, value in result["stats"].items():
         console.print(f"  {key}: {value}")
 
     # Display context preview
     context = result["context"]
-    console.print(f"\n[bold]Context Preview:[/bold]")
+    console.print("\n[bold]Context Preview:[/bold]")
     console.print(context[:500] + "..." if len(context) > 500 else context)
 
     # Save to file if requested
@@ -162,7 +166,7 @@ def run(
 @app.command()
 def benchmark(
     dataset: str = typer.Option("tiny", "--dataset", "-d", help="Dataset to use (tiny, rag)"),
-    output: Optional[str] = typer.Option(None, "--output", "-o", help="Output directory"),
+    output: str | None = typer.Option(None, "--output", "-o", help="Output directory"),
 ):
     """Run benchmark suite."""
     console.print(f"[bold]Running {dataset} benchmark...[/bold]")
@@ -184,7 +188,7 @@ def benchmark(
 def memory_compact(
     max_age: int = typer.Option(90, "--max-age", help="Maximum age in days"),
     similarity: float = typer.Option(0.9, "--similarity", help="Similarity threshold"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
 ):
     """Compact memory store."""
     settings = get_settings(config)
@@ -202,7 +206,7 @@ def memory_compact(
 
 @app.command()
 def memory_stats(
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
 ):
     """Show memory statistics."""
     settings = get_settings(config)
@@ -215,7 +219,7 @@ def memory_stats(
     console.print(f"  Size: {stats['total_size_bytes'] / 1024:.2f} KB")
 
     if stats["types"]:
-        console.print(f"\n  Entry types:")
+        console.print("\n  Entry types:")
         for entry_type, count in stats["types"].items():
             console.print(f"    {entry_type}: {count}")
 
@@ -224,7 +228,7 @@ def memory_stats(
 def ablate(
     path: str = typer.Argument(..., help="Path to file or directory"),
     budget: int = typer.Option(3000, "--budget", "-b", help="Token budget"),
-    config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
+    config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
 ):
     """Run ablation study on context selection."""
     setup_logging(level="INFO")
@@ -267,6 +271,114 @@ def ablate(
         )
 
     console.print(table)
+
+
+@app.command("compile")
+def compile_cmd(
+    path: str = typer.Argument(..., help="Path to file or directory"),
+    task: str = typer.Option("compile", "--task", help="Task description"),
+    provider: str = typer.Option("openai", "--provider", help="Provider name"),
+    model: str = typer.Option("gpt-4o-mini", "--model", help="Model name"),
+    budget: int = typer.Option(4000, "--budget", "-b", help="Token budget"),
+    output: str | None = typer.Option(None, "--output", "-o", help="Output JSON file"),
+):
+    """Compile optimized context packet to provider-specific prompt payload."""
+    runner = PipelineRunner()
+    path_obj = Path(path)
+
+    if path_obj.is_file():
+        result = runner.run(
+            [str(path_obj)],
+            budget=budget,
+            task=task,
+            task_type="chat",
+            query=task,
+        )
+    elif path_obj.is_dir():
+        result = runner.run_on_directory(
+            str(path_obj),
+            budget=budget,
+            task=task,
+            task_type="chat",
+            query=task,
+        )
+    else:
+        console.print(f"[red]Path not found: {path}[/red]")
+        raise typer.Exit(1)
+
+    packet = result["context_packet"]
+    compiled = compile_for_provider(packet, provider_name=provider)
+    payload = {
+        "provider": provider,
+        "model": model,
+        "packet": asdict(packet),
+        "compiled": compiled,
+        "stats": result["stats"],
+    }
+
+    if output:
+        with open(output, "w", encoding="utf-8") as file:
+            json.dump(payload, file, ensure_ascii=False, indent=2, default=str)
+        console.print(f"[green]Compiled payload saved to {output}[/green]")
+    else:
+        preview = json.dumps(compiled, ensure_ascii=False, indent=2, default=str)
+        console.print(preview[:1000] + "..." if len(preview) > 1000 else preview)
+
+
+@app.command("precompute")
+def precompute(
+    path: str = typer.Argument(..., help="Directory path to precompute"),
+    pattern: str = typer.Option("*", "--pattern", help="File glob pattern"),
+    recursive: bool = typer.Option(True, "--recursive/--no-recursive", help="Process recursively"),
+):
+    """Precompute summaries, token counts, hashes, and embeddings."""
+    runner = PrecomputeRunner()
+    stats = runner.run_on_directory(path, pattern=pattern, recursive=recursive)
+    console.print("[bold]Precompute Complete:[/bold]")
+    for key, value in stats.items():
+        console.print(f"  {key}: {value}")
+
+
+@app.command("serve-mcp")
+def serve_mcp(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind"),
+    port: int = typer.Option(8765, "--port", help="Port to bind"),
+):
+    """Run MCP-style server exposing context tools."""
+    run_mcp_server(host=host, port=port)
+
+
+@app.command("benchmark-latency")
+def benchmark_latency(
+    path: str = typer.Argument(..., help="Path to file or directory"),
+    budget: int = typer.Option(3000, "--budget", "-b", help="Token budget"),
+    iterations: int = typer.Option(5, "--iterations", "-n", help="Number of runs"),
+):
+    """Benchmark end-to-end pipeline latency."""
+    runner = PipelineRunner()
+    path_obj = Path(path)
+    if not path_obj.exists():
+        console.print(f"[red]Path not found: {path}[/red]")
+        raise typer.Exit(1)
+
+    latencies_ms: list[float] = []
+    for _ in range(iterations):
+        start = perf_counter()
+        if path_obj.is_file():
+            runner.run([str(path_obj)], budget=budget)
+        else:
+            runner.run_on_directory(str(path_obj), budget=budget)
+        latencies_ms.append((perf_counter() - start) * 1000)
+
+    avg_ms = sum(latencies_ms) / len(latencies_ms)
+    min_ms = min(latencies_ms)
+    max_ms = max(latencies_ms)
+
+    console.print("[bold]Latency Benchmark:[/bold]")
+    console.print(f"  iterations: {iterations}")
+    console.print(f"  avg_ms: {avg_ms:.2f}")
+    console.print(f"  min_ms: {min_ms:.2f}")
+    console.print(f"  max_ms: {max_ms:.2f}")
 
 
 @app.command("version")

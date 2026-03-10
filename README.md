@@ -4,7 +4,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-A framework for optimizing LLM context usage across heterogeneous data sources.
+A universal context middleware for optimizing LLM and agent context across providers.
 
 ## Features
 
@@ -13,6 +13,12 @@ A framework for optimizing LLM context usage across heterogeneous data sources.
 - **Multiple Representations**: Generate compact alternatives (bullet summaries, JSON, citations)
 - **Utility & Risk Scoring**: Evaluate blocks on relevance, trust, freshness, and risk factors
 - **Knapsack Optimization**: Solve token budget allocation as constrained optimization
+- **Canonical Context IR**: Emit provider-agnostic `ContextPacket` payloads
+- **Multi-Provider Adapters**: OpenAI, Anthropic, Ollama, and OpenAI-compatible APIs
+- **Chat + Agent Support**: Compile packet output for chat workflows and agent loops
+- **MCP Server**: Expose ContextFusion tools/resources over an MCP-style server
+- **Framework Integrations**: Retriever wrappers for LangChain and LlamaIndex
+- **Precompute Pipeline**: Precompute summaries, hashes, tokens, and embeddings
 - **Ablation Studies**: Learn which context contributes most to outcomes
 - **Memory Management**: Persistent storage with compaction and retention policies
 - **Web UI Visualization**: Run and inspect pipeline outputs in a local browser UI
@@ -37,7 +43,10 @@ Create local environment file (kept out of Git):
 
 ```bash
 cat > .env << 'EOF'
+OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
+OPENAI_COMPAT_BASE_URL=
+OPENAI_COMPAT_API_KEY=
 EOF
 ```
 
@@ -61,10 +70,22 @@ print(result["stats"])    # Processing statistics
 cpo ingest ./data
 
 # Run optimization pipeline
-cpo run ./data --budget 3000 --output context.txt
+cpo run ./data --budget 3000 --query "Summarize architecture" --output context.txt
 
 # Plan for a specific task
 cpo plan "Summarize these documents" --budget 5000
+
+# Compile context packet for provider chat usage
+cpo compile ./data --provider anthropic --model claude-sonnet-4-6 --budget 4000
+
+# Precompute artifacts for latency reduction
+cpo precompute ./data
+
+# Run MCP-style server
+cpo serve-mcp --host 127.0.0.1 --port 8765
+
+# Benchmark latency
+cpo benchmark-latency ./data --iterations 5
 
 # Run ablation study
 cpo ablate ./data --budget 3000
@@ -75,18 +96,20 @@ cpo ui --host 127.0.0.1 --port 8080
 
 ## Architecture
 
-ContextFusion uses a pipeline architecture:
+ContextFusion uses a middleware pipeline architecture:
 
 ```
-Ingest → Normalize → Represent → Score → Optimize → Assemble
+Ingest → Normalize → Represent → Retrieve → Score → Optimize → Assemble → Compile
 ```
 
 1. **Ingest**: Extract content from multiple file formats
 2. **Normalize**: Convert to uniform `ContextBlock` objects
 3. **Represent**: Generate alternative compact representations
-4. **Score**: Compute utility and risk scores
-5. **Optimize**: Solve knapsack problem for optimal selection
-6. **Assemble**: Build final context string
+4. **Retrieve**: Optional two-stage retrieval (BM25 top-100, rerank top-20)
+5. **Score**: Compute utility and risk scores
+6. **Optimize**: Solve knapsack problem for optimal selection
+7. **Assemble**: Build final context string and `ContextPacket`
+8. **Compile**: Transform packet into provider-specific message payloads
 
 ## Supported Formats
 
@@ -127,6 +150,11 @@ provider:
   name: anthropic
   model: claude-sonnet-4-6
 ```
+
+You can also configure:
+- `provider.name: openai`
+- `provider.name: ollama`
+- `provider.name: openai_compatible` (with `OPENAI_COMPAT_BASE_URL` and API key)
 
 ## Algorithm
 
@@ -221,7 +249,7 @@ Latest tiny benchmark run (`2026-03-10`, local deterministic):
 
 For full per-task details, see `benchmarks/BENCHMARK_RESULTS.md`.
 
-Run provider API benchmark (Anthropic):
+Run provider API benchmark:
 
 ```bash
 make benchmark-api
@@ -266,6 +294,12 @@ make format
 # Run local Web UI
 make ui
 
+# Run MCP-style server
+make serve-mcp
+
+# Precompute artifacts
+make precompute
+
 # Run all checks
 make all-checks
 ```
@@ -278,10 +312,17 @@ context-portfolio-optimizer/
 │   ├── ingestion/          # File loaders
 │   ├── normalization/      # Block building
 │   ├── representations/    # Alternative representations
+│   ├── retrieval/          # Two-stage retrieval components
 │   ├── scoring/            # Utility and risk models
 │   ├── allocation/         # Budget and knapsack optimization
+│   ├── assembly/           # Context packet compiler
+│   ├── ir/                 # Canonical ContextPacket IR
+│   ├── providers/          # Provider adapters + registry
+│   ├── agents/             # Agent loop support
+│   ├── integrations/       # LangChain/LlamaIndex wrappers
 │   ├── memory/             # Memory storage
-│   ├── providers/          # LLM providers
+│   ├── mcp_server/         # MCP-style server
+│   ├── precompute/         # Offline precompute pipeline
 │   ├── orchestration/      # Pipeline runner
 │   ├── web_ui.py           # Local visualization server
 │   └── cli.py              # Command-line interface

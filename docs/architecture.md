@@ -2,18 +2,11 @@
 
 ## Overview
 
-ContextFusion is built around a pipeline architecture that processes heterogeneous data sources into optimized LLM context.
+ContextFusion is built as a universal context middleware that processes heterogeneous
+data sources into optimized provider-agnostic context packets.
 
 ```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Ingest    │───▶│  Normalize  │───▶│  Represent  │───▶│   Score     │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
-                                                                  │
-                                                                  ▼
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│   Assemble  │◀───│  Portfolio  │◀───│  Knapsack   │◀───│  Utility    │
-│   Context   │    │   Select    │    │  Optimize   │    │   & Risk    │
-└─────────────┘    └─────────────┘    └─────────────┘    └─────────────┘
+Ingest → Normalize → Represent → Retrieve → Score → Optimize → Assemble → Compile
 ```
 
 ## Components
@@ -63,6 +56,32 @@ Optimizes context selection:
 - **KnapsackOptimizer**: Solves 0/1 knapsack for optimal selection
 - **PortfolioSelector**: Orchestrates selection process
 
+### Retrieval Layer
+
+Two-stage retrieval before knapsack optimization:
+- **BM25Retriever**: lexical top-100 candidate retrieval
+- **SimpleReranker**: rerank to top-20 before optimization
+
+### IR + Assembly Layers
+
+- **ContextPacket IR** (`ir/context_packet.py`): canonical selected-block packet
+- **Compiler** (`assembly/compiler.py`): provider-specific message/prompt compilation
+
+### Providers Layer
+
+Adapter system under `providers/`:
+- OpenAI
+- Anthropic
+- Ollama
+- OpenAI-compatible endpoints (Grok/Kimi/DeepSeek/Together/Groq style APIs)
+
+### Agent + MCP + Integrations
+
+- **agents/agent_runner.py**: agent-step orchestration with context optimization
+- **mcp_server/**: MCP-style tools/resources server
+- **integrations/**: LangChain and LlamaIndex retriever wrappers
+- **precompute/runner.py**: offline precompute for summaries/tokens/hashes/embeddings
+
 ### Memory Layer
 
 Manages persistent memory:
@@ -73,7 +92,7 @@ Manages persistent memory:
 ### Interface Layer
 
 User-facing entry points:
-- **CLI (`cpo`)**: Command-line operations for ingest/run/plan/ablate
+- **CLI (`cpo`)**: ingest/run/plan/compile/precompute/serve-mcp/benchmark-latency/ablate
 - **Web UI (`cpo ui`)**: Local browser-based visualization over pipeline outputs
 
 ## Data Flow
@@ -81,6 +100,8 @@ User-facing entry points:
 1. **Ingest**: Files → RawSegments
 2. **Normalize**: RawSegments → ContextBlocks
 3. **Represent**: Generate alternative representations
-4. **Score**: Compute utility and risk
-5. **Optimize**: Select optimal subset
-6. **Assemble**: Build final context string
+4. **Retrieve**: BM25 top-100 and rerank top-20 (when query is provided)
+5. **Score**: Compute utility and risk
+6. **Optimize**: Select optimal subset with knapsack
+7. **Assemble**: Build final context and ContextPacket IR
+8. **Compile**: Convert packet to provider-facing chat/prompt payloads

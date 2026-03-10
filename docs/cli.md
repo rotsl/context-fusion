@@ -15,7 +15,10 @@ make install-dev
 Optional `.env` for provider keys:
 
 ```bash
+OPENAI_API_KEY=...
 ANTHROPIC_API_KEY=...
+OPENAI_COMPAT_BASE_URL=...
+OPENAI_COMPAT_API_KEY=...
 ```
 
 ## Commands
@@ -50,14 +53,42 @@ Options:
 Run full context optimization pipeline.
 
 ```bash
-cpo run ./data --budget 3000 --output context.txt
+cpo run ./data --budget 3000 --query "Summarize architecture" --output context.txt
 ```
 
 Options:
 - `--budget, -b`: Token budget (default: 3000)
+- `--query, -q`: Optional retrieval query for two-stage retrieval
 - `--output, -o`: Output file
 - `--config, -c`: Config file path
 - `--verbose, -v`: Verbose output
+
+### compile
+
+Compile a provider-ready payload from optimized context.
+
+```bash
+cpo compile ./data --provider anthropic --model claude-sonnet-4-6 --budget 4000 --task "Summarize architecture"
+```
+
+Options:
+- `--provider`: Provider name (`openai`, `anthropic`, `ollama`, `openai_compatible`)
+- `--model`: Target model name
+- `--budget, -b`: Token budget
+- `--task`: Task/query string used for retrieval + compilation
+- `--output, -o`: Optional output JSON file
+
+### precompute
+
+Precompute summaries, token counts, hashes, and embeddings.
+
+```bash
+cpo precompute ./data --pattern "*.md" --recursive
+```
+
+Options:
+- `--pattern`: File glob pattern (default `*`)
+- `--recursive/--no-recursive`: Recursive traversal flag
 
 ### benchmark
 
@@ -77,6 +108,23 @@ Makefile equivalents:
 ```bash
 make benchmark
 make benchmark-rag
+make benchmark-api
+```
+
+### serve-mcp
+
+Run the MCP-style server exposing context tools/resources.
+
+```bash
+cpo serve-mcp --host 127.0.0.1 --port 8765
+```
+
+### benchmark-latency
+
+Benchmark pipeline latency on file/directory input.
+
+```bash
+cpo benchmark-latency ./data --budget 3000 --iterations 5
 ```
 
 ### memory-compact
@@ -137,7 +185,10 @@ Options:
 
 ## Environment Variables
 
+- `OPENAI_API_KEY`: OpenAI API key
 - `ANTHROPIC_API_KEY`: Anthropic API key
+- `OPENAI_COMPAT_BASE_URL`: Base URL for OpenAI-compatible providers
+- `OPENAI_COMPAT_API_KEY`: API key for OpenAI-compatible providers
 - `CPO_CONFIG_PATH`: Default config file path
 - `CPO_CACHE_DIR`: Cache directory
 - `CPO_MEMORY_DIR`: Memory directory

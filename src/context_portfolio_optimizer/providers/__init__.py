@@ -1,14 +1,22 @@
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) 2025–2026 Rohan R @rotsl
+# Copyright (c) 2025-2026 Rohan R @rotsl
 
-"""LLM providers for ContextFusion."""
+"""Provider adapters and provider registry."""
 
-from .base_provider import BaseProvider
+from .anthropic import AnthropicProvider
+from .base import LLMProvider
 from .mock_provider import MockProvider
-from .openai_provider import OpenAIProvider
+from .ollama import OllamaProvider
+from .openai import OpenAIProvider
+from .openai_compatible import OpenAICompatibleProvider
+from .registry import ProviderRegistry
 
 __all__ = [
-    "BaseProvider",
+    "AnthropicProvider",
+    "LLMProvider",
     "MockProvider",
+    "OllamaProvider",
+    "OpenAICompatibleProvider",
     "OpenAIProvider",
+    "ProviderRegistry",
 ]
