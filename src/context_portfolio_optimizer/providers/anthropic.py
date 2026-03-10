@@ -126,7 +126,9 @@ def _anthropic_message_payload(
             if content:
                 system_parts.append(content)
             continue
-        normalized.append({"role": role if role in {"user", "assistant"} else "user", "content": content})
+        normalized.append(
+            {"role": role if role in {"user", "assistant"} else "user", "content": content}
+        )
 
     if not normalized:
         normalized = [{"role": "user", "content": "Use the provided context and answer the task."}]
