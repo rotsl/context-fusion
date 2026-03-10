@@ -3,6 +3,12 @@
 [![CI](https://github.com/rotsl/context-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/rotsl/context-fusion/actions)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Claude API CF Success](https://img.shields.io/badge/Claude_API_with_CF-100%25-brightgreen.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
+[![API Context Tokens](https://img.shields.io/badge/API_context_tokens-10.3_vs_947.0-blue.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
+[![Modes](https://img.shields.io/badge/modes-chat%20%7C%20qa%20%7C%20code%20%7C%20agent-orange.svg)](#usage-flowcharts)
+
+ContextFusion keeps answer quality stable while cutting prompt payload size for chat and agent loops.
+I built it to solve recurring token bloat and latency spikes in real multi-provider LLM workflows.
 
 ContextFusion is a provider-neutral context compiler and optimization layer for LLMs and agents.
 It ingests heterogeneous sources, precomputes compact representations, and assembles cache-aware,
@@ -108,6 +114,43 @@ cpo ablate ./data --budget 3000
 
 # Launch local visualization UI
 cpo ui --host <host> --port 8080
+```
+
+## Usage Flowcharts
+
+### Normal User Path (Chat + Agent)
+
+```mermaid
+flowchart TD
+    A[Install ContextFusion] --> B[Add API keys in .env]
+    B --> C{Pick workflow}
+    C --> D[Chat workflow]
+    C --> E[Agent workflow]
+    D --> D1[Choose chat model: gpt-5-mini or claude-sonnet-4-6 or local ollama]
+    E --> E1[Choose agentic model: claude-sonnet-4-6 or gpt-5-mini or local tool-using model]
+    D1 --> F[Run cpo compile or cpo run]
+    E1 --> F
+    F --> G[Provider adapter builds request]
+    G --> H[Model response + citations + context stats]
+```
+
+### Developer Path (Build + Evaluate + Deploy)
+
+```mermaid
+flowchart TD
+    A[Prepare corpus] --> B[Run cpo precompute]
+    B --> C[Run benchmarks and tests]
+    C --> D{Serve path}
+    D --> E[CLI and app integration]
+    D --> F[Web UI]
+    E --> G{Runtime mode}
+    F --> G
+    G --> H[Chat or QA packer]
+    G --> I[Agent packer + delta fusion]
+    H --> J[Provider adapter]
+    I --> J
+    J --> K[OpenAI or Anthropic or Ollama or OpenAI-compatible]
+    K --> L[Track token, latency, and cache metrics]
 ```
 
 ## Architecture
@@ -275,6 +318,7 @@ Then open `http://<host>:8080` in your browser and follow these exact steps:
 3. Provide input path(s):
    - `Directory Path` (example: `./examples/gui_input`)
    - or `File Paths` (one file per line)
+   - repository placeholder file for quick UI checks: `./examples/gui_input/REPO_TRACE_PLACEHOLDER.md`
 4. Click `Run Pipeline`.
 5. Review `Run Stats`, `Representation Usage`, `Selected Source Types`, and `Context Preview`.
 
@@ -320,12 +364,47 @@ make benchmark-api
 This writes `benchmarks/BENCHMARK_API_RESULTS.md`.
 
 Latest Claude API benchmark run (`2026-03-10`, `claude-sonnet-4-6`):
-- with ContextFusion success: `66.7%`
+- with ContextFusion success: `100.0%`
 - without ContextFusion success: `100.0%`
-- avg context tokens with ContextFusion: `34.7`
-- avg context tokens without ContextFusion: `99.0`
+- avg context tokens with ContextFusion: `10.3`
+- avg context tokens without ContextFusion: `947.0`
+- avg total latency with ContextFusion: `7763.3 ms`
+- avg total latency without ContextFusion: `8609.6 ms`
+
+### Benchmark Snapshot (Graphical)
+
+`Tiny Benchmark` context tokens (lower is better)
+
+```text
+With ContextFusion    34.7  | ████████
+Without ContextFusion 99.0  | ████████████████████████
+```
+
+`Claude API Benchmark` context tokens (lower is better)
+
+```text
+With ContextFusion    10.3  | █
+Without ContextFusion 947.0 | ████████████████████████████████████████
+```
+
+`Claude API Benchmark` average total latency (lower is better)
+
+```text
+With ContextFusion    7763.3 ms | ████████████████████████████████████
+Without ContextFusion 8609.6 ms | ███████████████████████████████████████
+```
+
+Derived deltas from latest API run:
+- context-token reduction with ContextFusion: `98.9%`
+- average total-latency improvement with ContextFusion: `9.8%`
 
 See `benchmarks/BENCHMARK_API_RESULTS.md` for per-task latency and answer token details.
+
+For more stable API comparisons under network jitter, run:
+
+```bash
+python benchmarks/runners/run_api_eval.py --trials-per-case 2
+```
 
 Optional RAG benchmark runner:
 
@@ -454,3 +533,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## Acknowledgments
 
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
+
+<p align="center"><strong>ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>
