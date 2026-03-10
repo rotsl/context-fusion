@@ -31,39 +31,62 @@ DEFAULT_MODELS = {
     "groq": "llama-3.1-70b-versatile",
 }
 
+_NO_TEXT_IMAGE_MARKER = "[Image: No text detected]"
+
 HTML_PAGE = """<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ContextFusion Web UI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --card: #1f2937;
-      --text: #e5e7eb;
-      --muted: #9ca3af;
-      --accent: #34d399;
-      --accent-2: #60a5fa;
+      --bg: #061322;
+      --bg-soft: #0a1b2e;
+      --panel: rgba(10, 24, 40, 0.82);
+      --card: rgba(23, 39, 62, 0.95);
+      --text: #e8eef7;
+      --muted: #9ab0cc;
+      --accent: #2dd4bf;
+      --accent-2: #38bdf8;
+      --line: #2b405d;
       --danger: #f87171;
+      --success: #34d399;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: ui-sans-serif, -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
-      background: radial-gradient(1200px 600px at 20% -20%, #1e293b 10%, var(--bg) 60%);
+      font-family: "Space Grotesk", -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(1300px 700px at -10% -30%, #15426f 0%, transparent 55%),
+        radial-gradient(1100px 600px at 110% -20%, #0d5f60 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
       color: var(--text);
+      min-height: 100vh;
     }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    h1 { margin: 0 0 4px; font-size: 1.8rem; }
-    .sub { color: var(--muted); margin-bottom: 20px; }
+    .container { max-width: 1180px; margin: 0 auto; padding: 28px 20px 32px; }
+    h1 { margin: 0 0 6px; font-size: 2rem; letter-spacing: 0.2px; }
+    .sub { color: var(--muted); margin-bottom: 16px; font-size: 0.96rem; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      color: #cde0f7;
+      background: rgba(7, 18, 31, 0.55);
+    }
     .panel {
-      background: linear-gradient(145deg, #111827, #0b1220);
-      border: 1px solid #1f2a3a;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
+      background: linear-gradient(165deg, var(--panel), rgba(7, 17, 30, 0.9));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 18px 40px rgba(2, 8, 20, 0.45);
+      backdrop-filter: blur(6px);
     }
     .grid { display: grid; gap: 12px; }
     .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -72,22 +95,43 @@ HTML_PAGE = """<!doctype html>
       .grid-2, .grid-3 { grid-template-columns: 1fr; }
     }
     label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+    .help {
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .help code {
+      color: #cbd5e1;
+      font-family: "IBM Plex Mono", SFMono-Regular, Menlo, monospace;
+    }
     input, select, textarea, button {
       width: 100%;
-      border-radius: 10px;
-      border: 1px solid #334155;
-      background: #0b1220;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      background: #071423;
       color: var(--text);
       padding: 10px 12px;
       font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
     }
     textarea { min-height: 88px; resize: vertical; }
     .btn {
       cursor: pointer;
-      background: linear-gradient(90deg, var(--accent), #10b981);
+      background: linear-gradient(90deg, var(--accent), #22c55e);
       border: none;
-      color: #00120a;
+      color: #03140f;
       font-weight: 700;
+      box-shadow: 0 10px 22px rgba(45, 212, 191, 0.3);
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(45, 212, 191, 0.4);
     }
     .inline-check {
       display: flex;
@@ -105,26 +149,31 @@ HTML_PAGE = """<!doctype html>
     @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .card {
       background: var(--card);
-      border: 1px solid #334155;
+      border: 1px solid var(--line);
       border-radius: 12px;
       padding: 10px;
     }
     .card .k { color: var(--muted); font-size: 0.8rem; }
-    .card .v { font-size: 1.15rem; font-weight: 700; margin-top: 2px; }
+    .card .v {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 2px;
+      color: #d7fff8;
+    }
     .bars { display: grid; gap: 8px; }
     .bar-row { display: grid; grid-template-columns: 160px 1fr 56px; gap: 8px; align-items: center; }
-    .bar-track { background: #0b1220; border: 1px solid #334155; border-radius: 999px; height: 10px; overflow: hidden; }
+    .bar-track { background: #081323; border: 1px solid var(--line); border-radius: 999px; height: 11px; overflow: hidden; }
     .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-2), #38bdf8); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .mono { font-family: "IBM Plex Mono", SFMono-Regular, Menlo, monospace; font-size: 0.86rem; }
     pre {
       margin: 0;
       white-space: pre-wrap;
       word-break: break-word;
-      background: #0b1220;
-      border: 1px solid #334155;
+      background: #081426;
+      border: 1px solid var(--line);
       border-radius: 10px;
       padding: 10px;
-      max-height: 320px;
+      max-height: 300px;
       overflow: auto;
     }
   </style>
@@ -133,8 +182,18 @@ HTML_PAGE = """<!doctype html>
   <div class="container">
     <h1>ContextFusion Web UI</h1>
     <div class="sub">Run the pipeline and visualize selection stats in your browser.</div>
+    <div class="chip-row">
+      <div class="chip">CF Middleware</div>
+      <div class="chip">Provider-Agnostic</div>
+      <div class="chip">Chat + Agent Modes</div>
+      <div class="chip">Local + API Models</div>
+    </div>
 
     <div class="panel">
+      <div class="help" style="margin-bottom: 10px;">
+        Fill these fields left-to-right, then click <code>Run ContextFusion Pipeline</code>.
+        If <code>Call model after CF pipeline</code> is enabled, your provider API key from <code>.env</code> is used.
+      </div>
       <div class="grid grid-3">
         <div>
           <label for="mode">Input Mode</label>
@@ -142,6 +201,7 @@ HTML_PAGE = """<!doctype html>
             <option value="directory" selected>Directory</option>
             <option value="files">File list</option>
           </select>
+          <div class="help">Use <code>Directory</code> for one folder or even a single file path. Use <code>File list</code> for many explicit files.</div>
         </div>
         <div>
           <label for="task-type">Task Mode</label>
@@ -151,15 +211,18 @@ HTML_PAGE = """<!doctype html>
             <option value="code">Code</option>
             <option value="agent">Agent</option>
           </select>
+          <div class="help"><code>chat</code> general answers, <code>qa</code> citation-focused, <code>code</code> debugging context, <code>agent</code> iterative steps.</div>
         </div>
         <div>
           <label for="budget">Budget</label>
           <input id="budget" type="number" min="1" value="3000">
+          <div class="help">Token budget for ContextFusion selection before model call. Lower = cheaper/shorter context.</div>
         </div>
       </div>
       <div style="margin-top: 10px;">
         <label for="query">Query / Task</label>
         <input id="query" type="text" placeholder="Summarize key points from this directory">
+        <div class="help">What you want answered. This guides retrieval, scoring, and final model prompt.</div>
       </div>
       <div class="grid grid-3" style="margin-top: 10px;">
         <div>
@@ -175,20 +238,24 @@ HTML_PAGE = """<!doctype html>
             <option value="together">Together</option>
             <option value="groq">Groq</option>
           </select>
+          <div class="help">Choose model backend. For this repo default use <code>anthropic</code> with <code>ANTHROPIC_API_KEY</code>.</div>
         </div>
         <div>
           <label for="model">Model</label>
           <input id="model" type="text" value="claude-sonnet-4-6" placeholder="claude-sonnet-4-6">
+          <div class="help">Model name for selected provider (for example <code>claude-sonnet-4-6</code>).</div>
         </div>
         <div>
           <label for="max-answer-tokens">Max Answer Tokens</label>
           <input id="max-answer-tokens" type="number" min="1" value="256">
+          <div class="help">Upper bound on model output length. Smaller values reduce response cost/latency.</div>
         </div>
       </div>
       <div class="grid grid-2" style="margin-top: 10px;">
         <div>
           <label for="temperature">Temperature</label>
           <input id="temperature" type="number" min="0" max="2" step="0.1" value="0">
+          <div class="help"><code>0.0</code> = deterministic/consistent, <code>0.7</code> = more creative, <code>1.0+</code> = higher randomness.</div>
         </div>
         <div class="inline-check">
           <input id="call-model" type="checkbox" checked>
@@ -199,14 +266,17 @@ HTML_PAGE = """<!doctype html>
       <div id="dir-input-wrap" style="margin-top: 10px;">
         <label for="directory">Directory or File Path (relative or absolute)</label>
         <input id="directory" type="text" placeholder="./examples/gui_input or /abs/path/to/file.csv">
+        <div class="help">Examples: <code>./examples/gui_input</code>, <code>./examples/gui_input/random.csv</code>, <code>/absolute/path/data</code>.</div>
       </div>
       <div id="files-input-wrap" style="display:none; margin-top: 10px;">
         <label for="files">File Paths (one per line, relative or absolute)</label>
         <textarea id="files" placeholder="/path/a.txt&#10;/path/b.md"></textarea>
+        <div class="help">Enter one valid path per line. Empty lines are ignored.</div>
       </div>
 
       <div style="margin-top: 12px;">
-        <button id="run-btn" class="btn">Run Pipeline</button>
+        <button id="run-btn" class="btn">Run ContextFusion Pipeline</button>
+        <div class="help">Runs: ingest -> normalize -> CF select -> optional provider/model answer.</div>
         <div id="status" class="status"></div>
       </div>
     </div>
@@ -539,9 +609,41 @@ def _call_model_with_cf(
         mode=task_type,
     )
 
+    selected_texts = [block.text.strip() for block in context_packet.selected_blocks if block.text]
+    no_extractable_text = bool(selected_texts) and all(
+        text == _NO_TEXT_IMAGE_MARKER for text in selected_texts
+    )
+    if no_extractable_text:
+        return {
+            "answer": (
+                "Insufficient extracted context: OCR/text extraction found no readable text in the "
+                "selected image input, so CF cannot ground an answer for this query."
+            ),
+            "info": {
+                "provider": provider_key,
+                "model": model,
+                "task_type": task_type,
+                "input_messages": 0,
+                "note": "model_call_skipped_no_extractable_text",
+            },
+        }
+
     # Ensure at least one user turn exists for providers that require a user message.
     messages = list(compiled.get("messages", []))
-    user_prompt = (query or context_packet.task or "Answer using only provided context.").strip()
+    if query:
+        user_prompt = (
+            f"{query}\n\nUse only the provided context. "
+            "If context is insufficient, answer exactly: "
+            "'Insufficient context from extracted content.' "
+            "Be concise and do not use emojis."
+        )
+    else:
+        user_prompt = (
+            "Answer using only the provided context. "
+            "If context is insufficient, answer exactly: "
+            "'Insufficient context from extracted content.' "
+            "Be concise and do not use emojis."
+        )
     messages.append({"role": "user", "content": user_prompt})
 
     provider = ProviderRegistry.get(provider_key)
@@ -719,7 +821,7 @@ class _UIHandler(BaseHTTPRequestHandler):
                         file_paths=[str(input_path)],
                         budget=budget,
                         query=query,
-                        task=query or f"{task_type}_ui_run",
+                        task=query or f"{task_type} request from web ui",
                         task_type=task_type,
                     )
                 else:
@@ -727,7 +829,7 @@ class _UIHandler(BaseHTTPRequestHandler):
                         directory=directory,
                         budget=budget,
                         query=query,
-                        task=query or f"{task_type}_ui_run",
+                        task=query or f"{task_type} request from web ui",
                         task_type=task_type,
                     )
             elif mode == "files":
@@ -741,7 +843,7 @@ class _UIHandler(BaseHTTPRequestHandler):
                     file_paths=cleaned_paths,
                     budget=budget,
                     query=query,
-                    task=query or f"{task_type}_ui_run",
+                    task=query or f"{task_type} request from web ui",
                     task_type=task_type,
                 )
             else:
