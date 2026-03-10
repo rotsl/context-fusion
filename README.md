@@ -556,19 +556,25 @@ make all-checks
 ## Project Structure
 
 ```
-context-portfolio-optimizer/
+context-fusion/
+├── README.md
+├── CITATION.cff
+├── GUI_USAGE.md
+├── pyproject.toml
+├── Dockerfile
+├── docker-compose.yml
 ├── src/context_portfolio_optimizer/
 │   ├── ingestion/          # File loaders
 │   ├── normalization/      # Block building
 │   ├── representations/    # Alternative representations
 │   ├── retrieval/          # Two-stage retrieval components
 │   ├── scoring/            # Utility and risk models
-│   ├── allocation/         # Budget and knapsack optimization
+│   ├── allocation/         # Budget + knapsack/multi-objective planning
 │   ├── dedup/              # Fingerprinting + duplicate collapse
 │   ├── compression/        # JSON/citation/schema compression policies
 │   ├── caching/            # Cache segment and packet cache utilities
 │   ├── fusion/             # Context delta computation
-│   ├── assembly/           # Context packet compiler
+│   ├── assembly/           # Provider-aware packet compiler
 │   ├── ir/                 # Canonical ContextPacket IR
 │   ├── providers/          # Provider adapters + registry
 │   ├── config/             # Budget profiles and defaults
@@ -580,10 +586,28 @@ context-portfolio-optimizer/
 │   ├── orchestration/      # Pipeline runner
 │   ├── web_ui.py           # Local visualization server
 │   └── cli.py              # Command-line interface
-├── configs/                # Configuration files
-├── examples/               # Usage examples
-├── tests/                  # Test suite
-└── docs/                   # Documentation
+├── configs/                # Provider and runtime configs
+├── docs/                   # Documentation
+├── benchmarks/             # Benchmark runners + reports
+├── examples/               # Demo scripts + GUI inputs
+└── tests/                  # Test suite
+```
+
+This tree intentionally excludes local-only artifacts in `.gitignore` (for example: `.env`, virtualenvs, caches, and coverage outputs).
+
+## Citation
+
+If ContextFusion supports your research or product, please cite it using [CITATION.cff](CITATION.cff).
+
+```bibtex
+@software{r2026contextfusion,
+  author       = {Rohan R},
+  title        = {ContextFusion},
+  year         = {2026},
+  url          = {https://github.com/rotsl/context-fusion},
+  version      = {0.1.0},
+  orcid        = {0009-0005-9225-1775}
+}
 ```
 
 ## License
@@ -605,5 +629,18 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## Acknowledgments
 
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
+
+<h3 align="center">Interactive CF vs Without CF</h3>
+<p align="center">Click to play an alternating comparison using the latest README benchmark metrics.</p>
+<details>
+  <summary><strong>Toggle Comparison Animation</strong></summary>
+  <p align="center">
+    <marquee behavior="alternate" direction="left" scrollamount="7" width="96%">
+      With ContextFusion: success 100.0% | context tokens 10.3 | avg total latency 7763.3 ms
+      &nbsp;&nbsp;&nbsp;vs&nbsp;&nbsp;&nbsp;
+      Without ContextFusion: success 100.0% | context tokens 947.0 | avg total latency 8609.6 ms
+    </marquee>
+  </p>
+</details>
 
 <p align="center"><strong>🚀ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>
