@@ -8,9 +8,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "web/pages/**"
-      - ".github/workflows/gui-public.yml"
 
 permissions:
   contents: read
@@ -46,10 +43,18 @@ jobs:
           grep -q 'id="context-preview"' web/pages/index.html
           grep -q 'id="model-answer"' web/pages/index.html
 
+      - name: Build Pages artifact root
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          cp -R web/pages/. _site/
+          touch _site/.nojekyll
+          test -f _site/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/pages
+          path: _site
 
   deploy:
     needs: build
