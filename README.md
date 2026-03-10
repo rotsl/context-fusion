@@ -631,10 +631,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
 
 <p align="center">
-  <marquee behavior="alternate" direction="up" height="70" scrollamount="2">
-    <code>With CF | # | 10.3</code><br />
-    <code>Without CF | ######################################## | 947.0</code>
-  </marquee>
+  <img src="assets/cf-comparison.svg" />
 </p>
 
 <p align="center"><strong>🚀ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>
