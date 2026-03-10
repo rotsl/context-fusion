@@ -4,21 +4,26 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 
-A universal context middleware for optimizing LLM and agent context across providers.
+ContextFusion is a provider-neutral context compiler and optimization layer for LLMs and agents.
+It ingests heterogeneous sources, precomputes compact representations, and assembles cache-aware,
+budget-constrained context packets across OpenAI, Anthropic, Ollama, and OpenAI-compatible runtimes.
 
 ## Features
 
 - **Multiformat Ingestion**: Process text, PDFs, DOCX, CSV, JSON, images (OCR), and code
 - **Intelligent Normalization**: Convert all sources to uniform `ContextBlock` objects
-- **Multiple Representations**: Generate compact alternatives (bullet summaries, JSON, citations)
+- **Task-Specific Compact Representations**: QA, code, agent, and universal compact variants
 - **Utility & Risk Scoring**: Evaluate blocks on relevance, trust, freshness, and risk factors
-- **Knapsack Optimization**: Solve token budget allocation as constrained optimization
-- **Canonical Context IR**: Emit provider-agnostic `ContextPacket` payloads
+- **Latency-Aware Multi-Objective Planner**: Value density + token + latency + cacheability planning
+- **Canonical IR + Delta Fusion**: Emit `ContextPacket` and incremental `ContextDelta`
+- **Dedup + Fingerprinting**: Exact + near-duplicate collapse with provenance retention
 - **Multi-Provider Adapters**: OpenAI, Anthropic, Ollama, and OpenAI-compatible APIs
-- **Chat + Agent Support**: Compile packet output for chat workflows and agent loops
+- **Provider-Aware Compilation**: `chat`, `qa`, `code`, `agent` packers and provider formatters
+- **Chat + Agent Support**: Cache-aware assembly and incremental agent-loop updates
 - **MCP Server**: Expose ContextFusion tools/resources over an MCP-style server
 - **Framework Integrations**: Retriever wrappers for LangChain and LlamaIndex
-- **Precompute Pipeline**: Precompute summaries, hashes, tokens, and embeddings
+- **Precompute Pipeline**: Store fingerprints, summaries, token stats, compact variants, and features
+- **Compression Pipeline**: JSON minify, schema prune, citation compaction policies
 - **Ablation Studies**: Learn which context contributes most to outcomes
 - **Memory Management**: Persistent storage with compaction and retention policies
 - **Web UI Visualization**: Run and inspect pipeline outputs in a local browser UI
@@ -69,29 +74,40 @@ print(result["stats"])    # Processing statistics
 # Ingest and display content
 cpo ingest ./data
 
-# Run optimization pipeline
-cpo run ./data --budget 3000 --query "Summarize architecture" --output context.txt
+# Run optimization pipeline (backward compatible)
+cpo run ./data --budget 3000 --query "Summarize architecture" --output context.txt \
+  --provider openai --model gpt-5-mini --mode chat --profile openai_chat
 
 # Plan for a specific task
 cpo plan "Summarize these documents" --budget 5000
 
-# Compile context packet for provider chat usage
-cpo compile ./data --provider anthropic --model claude-sonnet-4-6 --budget 4000
+# Compile provider-ready packet (qa/code/agent/chat modes)
+cpo compile ./data \
+  --task "Answer with citations" \
+  --provider openai \
+  --model gpt-5-mini \
+  --mode qa \
+  --budget 4000 \
+  --compression light \
+  --delta
 
 # Precompute artifacts for latency reduction
-cpo precompute ./data
+cpo precompute ./data --store-dir .cpo_cache/precompute --semantic-dedup
 
 # Run MCP-style server
-cpo serve-mcp --host 127.0.0.1 --port 8765
+cpo serve-mcp --host <host> --port 8765
 
 # Benchmark latency
 cpo benchmark-latency ./data --iterations 5
+
+# Inspect cache + precompute store
+cpo inspect-cache
 
 # Run ablation study
 cpo ablate ./data --budget 3000
 
 # Launch local visualization UI
-cpo ui --host 127.0.0.1 --port 8080
+cpo ui --host <host> --port 8080
 ```
 
 ## Architecture
@@ -99,17 +115,20 @@ cpo ui --host 127.0.0.1 --port 8080
 ContextFusion uses a middleware pipeline architecture:
 
 ```
-Ingest → Normalize → Represent → Retrieve → Score → Optimize → Assemble → Compile
+Ingest -> Normalize -> Canonical IR -> Precompute -> Dedup/Fingerprint
+-> Query Classify -> Candidate Retrieval -> Fast Rerank -> Budget Planner
+-> Context Compression -> Delta Fusion -> Provider Adapter -> Cache-Aware Assemble
 ```
 
 1. **Ingest**: Extract content from multiple file formats
 2. **Normalize**: Convert to uniform `ContextBlock` objects
 3. **Represent**: Generate alternative compact representations
-4. **Retrieve**: Optional two-stage retrieval (BM25 top-100, rerank top-20)
-5. **Score**: Compute utility and risk scores
-6. **Optimize**: Solve knapsack problem for optimal selection
-7. **Assemble**: Build final context string and `ContextPacket`
-8. **Compile**: Transform packet into provider-specific message payloads
+4. **Precompute**: Persist compact variants, token stats, retrieval features, and fingerprints
+5. **Retrieve**: Query classify + top-100 lexical retrieval + top-20/25 rerank
+6. **Plan**: Multi-objective latency-aware representation selection
+7. **Assemble**: Build cache segments and canonical `ContextPacket`
+8. **Fuse**: Compute `ContextDelta` for repeated agent turns
+9. **Compile**: Build provider-specific request-ready payloads
 
 ## Supported Formats
 
@@ -158,13 +177,20 @@ You can also configure:
 
 ## Algorithm
 
-ContextFusion treats context selection as a **0/1 Knapsack Problem**:
+ContextFusion preserves the knapsack foundation and extends it with a configurable multi-objective planner:
 
 ```
-maximize Σ((utility_i − risk_i) * z_i)
+maximize Σ(
+    w_u * utility_i
+  - w_r * risk_i
+  - w_t * token_cost_i
+  - w_l * latency_cost_i
+  + w_c * cacheability_i
+  + w_d * diversity_i
+) * z_i
 
 subject to:
-    Σ(token_i * z_i) ≤ token_budget
+    Σ(token_i * z_i) <= token_budget
     z_i ∈ {0, 1}
 ```
 
@@ -173,7 +199,43 @@ Where:
 - `risk_i`: Based on hallucination proxy, staleness, privacy
 - `token_i`: Token count for block i
 
-The optimizer also selects the best representation for each block (full text, bullet summary, citation pointer, etc.).
+The planner ranks compact representation variants per block and chooses one best variant per parent block.
+
+## Precompute Workflow
+
+1. Run `cpo precompute ./data`.
+2. Store fingerprints, summaries, compact variants, and retrieval features in `.cpo_cache/precompute`.
+3. Use `--precomputed-only` in `run`/`compile` to avoid regeneration on cache hits.
+
+## Chat Mode vs Agent Mode
+
+- `chat`: concise context for standard conversation prompts
+- `qa`: extractive evidence + citation-first packing
+- `code`: signatures, changed regions, and dependency-focused packing
+- `agent`: working-memory and constraint deltas with optional incremental fusion
+
+## Compression Pipeline
+
+Compression levels (`none`, `light`, `medium`, `aggressive`) apply:
+- citation map compaction (`Source URI` -> `[id]`)
+- JSON minification
+- schema field pruning where structured payloads are present
+
+## Delta Fusion
+
+Use `--delta` with `run` or `compile` to compute incremental packet changes:
+- added blocks
+- updated blocks
+- removed blocks
+- unchanged block IDs
+
+## Cache-Aware Assembly
+
+Each packet is segmented into stable and dynamic segments:
+- stable: task/system instructions, citation maps, cacheable blocks
+- dynamic: non-cacheable or volatile blocks
+
+This allows reuse across repeated chat/agent turns and lowers effective prompt churn.
 
 ## Examples
 
@@ -201,10 +263,10 @@ The UI is a local browser app to run the pipeline and inspect:
 Run the built-in local UI:
 
 ```bash
-cpo ui --host 127.0.0.1 --port 8080
+cpo ui --host <host> --port 8080
 ```
 
-Then open `http://127.0.0.1:8080` and follow these exact steps:
+Then open `http://<host>:8080` in your browser and follow these exact steps:
 
 1. Choose `Input Mode`:
    - `Directory` to process a folder
@@ -243,9 +305,9 @@ Output:
 Latest tiny benchmark run (`2026-03-10`, local deterministic):
 - with ContextFusion success: `100.0%`
 - without ContextFusion success: `100.0%`
-- avg tokens with ContextFusion: `43.0`
+- avg tokens with ContextFusion: `34.7`
 - avg tokens without ContextFusion: `99.0`
-- avg token reduction: `56.6%`
+- avg token reduction: `65.0%`
 
 For full per-task details, see `benchmarks/BENCHMARK_RESULTS.md`.
 
@@ -257,11 +319,35 @@ make benchmark-api
 
 This writes `benchmarks/BENCHMARK_API_RESULTS.md`.
 
+Latest Claude API benchmark run (`2026-03-10`, `claude-sonnet-4-6`):
+- with ContextFusion success: `66.7%`
+- without ContextFusion success: `100.0%`
+- avg context tokens with ContextFusion: `34.7`
+- avg context tokens without ContextFusion: `99.0`
+
+See `benchmarks/BENCHMARK_API_RESULTS.md` for per-task latency and answer token details.
+
 Optional RAG benchmark runner:
 
 ```bash
 make benchmark-rag
 ```
+
+Additional benchmark scripts:
+
+```bash
+python benchmarks/benchmark_latency.py
+python benchmarks/benchmark_tokens.py
+python benchmarks/benchmark_agent_loops.py
+```
+
+See `benchmarks/BENCHMARK_RESULTS.md` for the required comparison matrix:
+1. baseline full-context assembly
+2. current ContextFusion
+3. ContextFusion + precompute
+4. ContextFusion + compression
+5. ContextFusion + delta fusion
+6. ContextFusion + cache-aware assembly
 
 ## Testing
 
@@ -275,6 +361,18 @@ make test-cov
 # Run integration tests
 make test-integration
 ```
+
+Latest local test run (`2026-03-10`):
+- command: `contextfusionvenv/bin/pytest tests/ -v`
+- result: `49 passed, 0 failed`
+- report: `tests/TEST_RESULTS.md`
+
+## Validation Snapshot
+
+Latest local smoke checks (`2026-03-10`):
+- pipeline: `python -m context_portfolio_optimizer.cli run ./docs --budget 600 --query "Summarize key architecture points"` completed successfully
+- GUI: `cpo ui --host <host> --port 8081` served HTML and `/api/run` responded with JSON
+- browser launch: `open http://<host>:8081` executed during verification
 
 ## Development
 
@@ -315,9 +413,14 @@ context-portfolio-optimizer/
 │   ├── retrieval/          # Two-stage retrieval components
 │   ├── scoring/            # Utility and risk models
 │   ├── allocation/         # Budget and knapsack optimization
+│   ├── dedup/              # Fingerprinting + duplicate collapse
+│   ├── compression/        # JSON/citation/schema compression policies
+│   ├── caching/            # Cache segment and packet cache utilities
+│   ├── fusion/             # Context delta computation
 │   ├── assembly/           # Context packet compiler
 │   ├── ir/                 # Canonical ContextPacket IR
 │   ├── providers/          # Provider adapters + registry
+│   ├── config/             # Budget profiles and defaults
 │   ├── agents/             # Agent loop support
 │   ├── integrations/       # LangChain/LlamaIndex wrappers
 │   ├── memory/             # Memory storage

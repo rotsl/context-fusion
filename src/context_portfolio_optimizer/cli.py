@@ -14,15 +14,19 @@ from rich.table import Table
 
 from . import version
 from .allocation.budget import BudgetManager
-from .assembly.compiler import compile_for_provider
+from .assembly.compiler import compile_packet
+from .caching.packet_cache import PacketCache
+from .config.budget_profiles import get_budget_profile
 from .exceptions import ConfigurationError
+from .fusion.delta import compute_context_delta
 from .ingestion.dispatcher import IngestionDispatcher
+from .ir import CacheSegment, ContextPacket, SelectedBlock, packet_fingerprint
 from .logging_utils import setup_logging
 from .mcp_server.server import run_mcp_server
 from .memory.store import MemoryStore
 from .normalization.block_builder import BlockBuilder
 from .orchestration.runner import PipelineRunner
-from .precompute.runner import PrecomputeRunner
+from .precompute import PrecomputeRunner, PrecomputeStore
 from .settings import Settings
 
 app = typer.Typer(
@@ -41,6 +45,43 @@ def get_settings(config: str | None = None) -> Settings:
         except ConfigurationError:
             return Settings.load()
     return Settings.load()
+
+
+def _packet_from_dict(payload: dict[str, object]) -> ContextPacket:
+    selected_payload = payload.get("selected_blocks", [])
+    cache_payload = payload.get("cache_segments", [])
+    constraints_payload = payload.get("constraints", {})
+    citations_payload = payload.get("citations", [])
+    budget_payload = payload.get("budget", {})
+
+    selected_blocks: list[SelectedBlock] = []
+    if isinstance(selected_payload, list):
+        for block_payload in selected_payload:
+            if isinstance(block_payload, dict):
+                selected_blocks.append(SelectedBlock(**block_payload))
+
+    cache_segments: list[CacheSegment] = []
+    if isinstance(cache_payload, list):
+        for segment_payload in cache_payload:
+            if isinstance(segment_payload, dict):
+                cache_segments.append(CacheSegment(**segment_payload))
+
+    constraints = constraints_payload if isinstance(constraints_payload, dict) else {}
+    citations = citations_payload if isinstance(citations_payload, list) else []
+    budget = budget_payload if isinstance(budget_payload, dict) else {}
+
+    return ContextPacket(
+        task=str(payload.get("task", "")),
+        task_type=str(payload.get("task_type", "chat")),
+        constraints=constraints,
+        selected_blocks=selected_blocks,
+        citations=citations,
+        budget=budget,
+        cache_segments=cache_segments,
+        output_contract=payload.get("output_contract"),
+        provider_hint=payload.get("provider_hint"),
+        model_hint=payload.get("model_hint"),
+    )
 
 
 @app.command()
@@ -127,6 +168,19 @@ def run(
     path: str = typer.Argument(..., help="Path to file or directory"),
     budget: int = typer.Option(3000, "--budget", "-b", help="Token budget for retrieval"),
     query: str | None = typer.Option(None, "--query", "-q", help="Optional query for retrieval"),
+    provider: str = typer.Option("openai", "--provider", help="Provider name"),
+    model: str = typer.Option("gpt-4o-mini", "--model", help="Model name"),
+    mode: str = typer.Option("chat", "--mode", help="Compile mode: chat|qa|code|agent"),
+    profile: str | None = typer.Option(None, "--profile", help="Budget profile name"),
+    compression: str = typer.Option("none", "--compression", help="Compression level"),
+    delta: bool = typer.Option(
+        False, "--delta/--no-delta", help="Emit packet delta vs previous run"
+    ),
+    precomputed_only: bool = typer.Option(
+        False,
+        "--precomputed-only",
+        help="Use only precomputed representations where available",
+    ),
     output: str | None = typer.Option(None, "--output", "-o", help="Output file"),
     config: str | None = typer.Option(None, "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
@@ -137,10 +191,37 @@ def run(
     runner = PipelineRunner()
     path_obj = Path(path)
 
+    active_budget = budget
+    active_compression = compression
+    if profile:
+        profile_settings = get_budget_profile(profile)
+        active_budget = max(1, int(budget * float(profile_settings.get("retrieval_share", 1.0))))
+        if compression == "none":
+            active_compression = str(profile_settings.get("compression", "none"))
+
+    task = query or f"{mode}_run"
     if path_obj.is_file():
-        result = runner.run([str(path_obj)], budget, query=query)
+        result = runner.run(
+            [str(path_obj)],
+            budget=active_budget,
+            query=query,
+            task=task,
+            task_type=mode,
+            provider=provider,
+            model=model,
+            precomputed_only=precomputed_only,
+        )
     elif path_obj.is_dir():
-        result = runner.run_on_directory(str(path_obj), budget=budget, query=query)
+        result = runner.run_on_directory(
+            str(path_obj),
+            budget=active_budget,
+            query=query,
+            task=task,
+            task_type=mode,
+            provider=provider,
+            model=model,
+            precomputed_only=precomputed_only,
+        )
     else:
         console.print(f"[red]Path not found: {path}[/red]")
         raise typer.Exit(1)
@@ -156,7 +237,46 @@ def run(
     console.print("\n[bold]Context Preview:[/bold]")
     console.print(context[:500] + "..." if len(context) > 500 else context)
 
-    # Save to file if requested
+    packet = result["context_packet"]
+    compiled = compile_packet(
+        packet=packet,
+        provider=provider,
+        model=model,
+        mode=mode,
+        compression=active_compression,
+    )
+
+    console.print("\n[bold]Compiled Request Summary:[/bold]")
+    console.print(f"  provider: {provider}")
+    console.print(f"  model: {model}")
+    console.print(f"  mode: {mode}")
+    console.print(f"  compression: {active_compression}")
+    console.print(f"  message_count: {len(compiled['messages'])}")
+
+    cache = PacketCache()
+    packet_hash = packet_fingerprint(packet)
+    cache.put(packet_hash, {"packet": asdict(packet), "compiled": compiled})
+
+    if delta:
+        latest_file = Path(cache.cache_dir) / "latest_packet.json"
+        previous_packet: ContextPacket | None = None
+        if latest_file.exists():
+            with open(latest_file, encoding="utf-8") as file:
+                previous_payload = json.load(file)
+            previous_packet = _packet_from_dict(previous_payload)
+
+        if previous_packet is not None:
+            packet_delta = compute_context_delta(previous_packet, packet)
+            console.print(
+                f"  delta: +{len(packet_delta.added_blocks)} "
+                f"~{len(packet_delta.updated_blocks)} "
+                f"-{len(packet_delta.removed_block_ids)}"
+            )
+
+        with open(latest_file, "w", encoding="utf-8") as file:
+            json.dump(asdict(packet), file, ensure_ascii=False, indent=2, default=str)
+
+    # Save to file if requested (context preview output, backward compatible)
     if output:
         with open(output, "w", encoding="utf-8") as f:
             f.write(context)
@@ -279,42 +399,89 @@ def compile_cmd(
     task: str = typer.Option("compile", "--task", help="Task description"),
     provider: str = typer.Option("openai", "--provider", help="Provider name"),
     model: str = typer.Option("gpt-4o-mini", "--model", help="Model name"),
+    mode: str = typer.Option("chat", "--mode", help="Compile mode: chat|qa|code|agent"),
+    profile: str | None = typer.Option(None, "--profile", help="Budget profile name"),
+    compression: str = typer.Option("none", "--compression", help="Compression level"),
+    delta: bool = typer.Option(False, "--delta/--no-delta", help="Emit delta vs previous packet"),
+    precomputed_only: bool = typer.Option(
+        False,
+        "--precomputed-only",
+        help="Use only precomputed representations where available",
+    ),
     budget: int = typer.Option(4000, "--budget", "-b", help="Token budget"),
     output: str | None = typer.Option(None, "--output", "-o", help="Output JSON file"),
 ):
     """Compile optimized context packet to provider-specific prompt payload."""
     runner = PipelineRunner()
     path_obj = Path(path)
+    active_budget = budget
+    active_compression = compression
+    if profile:
+        profile_settings = get_budget_profile(profile)
+        active_budget = max(1, int(budget * float(profile_settings.get("retrieval_share", 1.0))))
+        if compression == "none":
+            active_compression = str(profile_settings.get("compression", "none"))
 
     if path_obj.is_file():
         result = runner.run(
             [str(path_obj)],
-            budget=budget,
+            budget=active_budget,
             task=task,
-            task_type="chat",
+            task_type=mode,
             query=task,
+            provider=provider,
+            model=model,
+            precomputed_only=precomputed_only,
         )
     elif path_obj.is_dir():
         result = runner.run_on_directory(
             str(path_obj),
-            budget=budget,
+            budget=active_budget,
             task=task,
-            task_type="chat",
+            task_type=mode,
             query=task,
+            provider=provider,
+            model=model,
+            precomputed_only=precomputed_only,
         )
     else:
         console.print(f"[red]Path not found: {path}[/red]")
         raise typer.Exit(1)
 
     packet = result["context_packet"]
-    compiled = compile_for_provider(packet, provider_name=provider)
+    compiled = compile_packet(
+        packet=packet,
+        provider=provider,
+        model=model,
+        mode=mode,
+        compression=active_compression,
+    )
     payload = {
         "provider": provider,
         "model": model,
+        "mode": mode,
         "packet": asdict(packet),
         "compiled": compiled,
         "stats": result["stats"],
     }
+
+    cache = PacketCache()
+    packet_hash = packet_fingerprint(packet)
+    cache.put(packet_hash, payload)
+    payload["packet_hash"] = packet_hash
+
+    if delta:
+        latest_file = Path(cache.cache_dir) / "latest_packet.json"
+        previous_packet: ContextPacket | None = None
+        if latest_file.exists():
+            with open(latest_file, encoding="utf-8") as file:
+                previous_payload = json.load(file)
+            previous_packet = _packet_from_dict(previous_payload)
+        if previous_packet is not None:
+            packet_delta = compute_context_delta(previous_packet, packet)
+            payload["delta"] = asdict(packet_delta)
+        with open(latest_file, "w", encoding="utf-8") as file:
+            json.dump(asdict(packet), file, ensure_ascii=False, indent=2, default=str)
 
     if output:
         with open(output, "w", encoding="utf-8") as file:
@@ -330,10 +497,25 @@ def precompute(
     path: str = typer.Argument(..., help="Directory path to precompute"),
     pattern: str = typer.Option("*", "--pattern", help="File glob pattern"),
     recursive: bool = typer.Option(True, "--recursive/--no-recursive", help="Process recursively"),
+    store_dir: str = typer.Option(
+        ".cpo_cache/precompute",
+        "--store-dir",
+        help="Precompute store directory",
+    ),
+    semantic_dedup: bool = typer.Option(
+        True,
+        "--semantic-dedup/--no-semantic-dedup",
+        help="Enable near-duplicate collapse",
+    ),
 ):
     """Precompute summaries, token counts, hashes, and embeddings."""
-    runner = PrecomputeRunner()
-    stats = runner.run_on_directory(path, pattern=pattern, recursive=recursive)
+    runner = PrecomputeRunner(store=PrecomputeStore(store_dir=store_dir))
+    stats = runner.run_on_directory(
+        path,
+        pattern=pattern,
+        recursive=recursive,
+        enable_semantic_dedup=semantic_dedup,
+    )
     console.print("[bold]Precompute Complete:[/bold]")
     for key, value in stats.items():
         console.print(f"  {key}: {value}")
@@ -379,6 +561,36 @@ def benchmark_latency(
     console.print(f"  avg_ms: {avg_ms:.2f}")
     console.print(f"  min_ms: {min_ms:.2f}")
     console.print(f"  max_ms: {max_ms:.2f}")
+
+
+@app.command("inspect-cache")
+def inspect_cache(
+    packet_cache_dir: str = typer.Option(
+        ".cpo_cache/packets",
+        "--packet-cache-dir",
+        help="Packet cache directory",
+    ),
+    precompute_store_dir: str = typer.Option(
+        ".cpo_cache/precompute",
+        "--precompute-store-dir",
+        help="Precompute store directory",
+    ),
+):
+    """Inspect packet cache and precompute store stats."""
+    packet_cache = PacketCache(cache_dir=packet_cache_dir)
+    precompute_store = PrecomputeStore(store_dir=precompute_store_dir)
+
+    packet_stats = packet_cache.inspect()
+    precompute_stats = precompute_store.inspect()
+
+    console.print("[bold]Cache Inspection:[/bold]")
+    console.print("Packet Cache:")
+    for key, value in packet_stats.items():
+        console.print(f"  {key}: {value}")
+
+    console.print("\nPrecompute Store:")
+    for key, value in precompute_stats.items():
+        console.print(f"  {key}: {value}")
 
 
 @app.command("version")

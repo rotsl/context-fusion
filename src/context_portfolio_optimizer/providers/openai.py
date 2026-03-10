@@ -8,7 +8,8 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from .base import BaseAdapter
+from .base import BaseAdapter, ProviderCapabilities
+from .tokenizers import estimate_provider_tokens
 
 
 class OpenAIProvider(BaseAdapter):
@@ -24,17 +25,37 @@ class OpenAIProvider(BaseAdapter):
     def name(self) -> str:
         return "openai"
 
+    def capabilities(self) -> ProviderCapabilities:
+        return ProviderCapabilities(
+            supports_tools=True,
+            supports_structured_output=True,
+            supports_prompt_cache=True,
+            supports_system_messages=True,
+            local=False,
+        )
+
+    def estimate_tokens(self, text: str, model: str) -> int:
+        return estimate_provider_tokens(self.name(), text, model)
+
+    def build_request(
+        self,
+        compiled_packet: dict[str, Any],
+        model: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        request = dict(compiled_packet.get("request", {}))
+        request.setdefault("model", model)
+        request.setdefault("messages", compiled_packet.get("messages", []))
+        request.update(kwargs)
+        return request
+
     def chat(
         self,
         messages: list[dict[str, Any]],
         model: str,
         **kwargs: Any,
     ) -> dict[str, Any]:
-        response = self.client.responses.create(
-            model=model,
-            input=messages,
-            **kwargs,
-        )
+        response = self.client.responses.create(model=model, input=messages, **kwargs)
         output_text = getattr(response, "output_text", "")
         return {
             "provider": self.name(),
@@ -50,10 +71,7 @@ class OpenAIProvider(BaseAdapter):
         model: str,
     ) -> dict[str, Any]:
         response = self.client.chat.completions.create(
-            model=model,
-            messages=messages,
-            tools=tools,
-            tool_choice="auto",
+            model=model, messages=messages, tools=tools, tool_choice="auto"
         )
         message = response.choices[0].message
         return {

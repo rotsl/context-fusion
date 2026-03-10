@@ -8,11 +8,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from context_portfolio_optimizer.dedup import deduplicate_blocks, normalized_text_hash
 from context_portfolio_optimizer.ingestion.dispatcher import IngestionDispatcher
-from context_portfolio_optimizer.memory.store import MemoryStore
 from context_portfolio_optimizer.normalization.block_builder import BlockBuilder
-from context_portfolio_optimizer.representations.base_representation import RepresentationGenerator
-from context_portfolio_optimizer.utils.hashing import compute_hash
+from context_portfolio_optimizer.precompute.embeddings import pseudo_embedding
+from context_portfolio_optimizer.precompute.store import PrecomputedBlock, PrecomputeStore
+from context_portfolio_optimizer.precompute.summaries import outline_summary, summarize_sentences
+from context_portfolio_optimizer.precompute.token_stats import token_features
+from context_portfolio_optimizer.representations.registry import RepresentationRegistry
 
 
 class PrecomputeRunner:
@@ -22,19 +25,20 @@ class PrecomputeRunner:
         self,
         dispatcher: IngestionDispatcher | None = None,
         block_builder: BlockBuilder | None = None,
-        rep_generator: RepresentationGenerator | None = None,
-        memory_store: MemoryStore | None = None,
+        store: PrecomputeStore | None = None,
+        rep_registry: RepresentationRegistry | None = None,
     ):
         self.dispatcher = dispatcher or IngestionDispatcher()
         self.block_builder = block_builder or BlockBuilder()
-        self.rep_generator = rep_generator or RepresentationGenerator()
-        self.memory_store = memory_store or MemoryStore()
+        self.store = store or PrecomputeStore()
+        self.rep_registry = rep_registry or RepresentationRegistry()
 
     def run_on_directory(
         self,
         directory: str,
         pattern: str = "*",
         recursive: bool = True,
+        enable_semantic_dedup: bool = True,
     ) -> dict[str, Any]:
         """Precompute context artifacts for all files in a directory."""
         directory_path = Path(directory)
@@ -43,47 +47,59 @@ class PrecomputeRunner:
 
         results = self.dispatcher.load_directory(directory, pattern=pattern, recursive=recursive)
 
+        all_blocks = []
         total_segments = 0
-        total_blocks = 0
-        stored_entries = 0
 
         for source_path, segments in results.items():
             total_segments += len(segments)
             blocks = self.block_builder.build_blocks(segments)
-            total_blocks += len(blocks)
-
             for block in blocks:
-                reps = self.rep_generator.generate_for_block(block)
-                serializable_reps = {rep_type.value: content for rep_type, content in reps.items()}
-                embedding = self._pseudo_embedding(block.content)
-                metadata = {
-                    "source_path": source_path,
-                    "block_id": block.id,
-                    "token_count": block.token_count,
-                    "content_hash": compute_hash(block.content),
-                    "representations": serializable_reps,
-                    "embedding": embedding,
-                }
-                self.memory_store.append(
+                if not block.file_path:
+                    block.file_path = source_path
+            all_blocks.extend(blocks)
+
+        deduped_blocks = deduplicate_blocks(
+            all_blocks,
+            enable_semantic=enable_semantic_dedup,
+        )
+
+        stored_entries = 0
+        for block in deduped_blocks:
+            variants = self.rep_registry.generate_all(block, task_type="retrieval")
+            representations = {variant.representation_type: variant.text for variant in variants}
+            representations.setdefault(
+                "summary_3", summarize_sentences(block.content, max_sentences=3)
+            )
+            representations.setdefault("outline", outline_summary(block.content))
+
+            features = token_features(block.content)
+            features["line_count"] = len(
+                [line for line in block.content.splitlines() if line.strip()]
+            )
+            metadata = {
+                "source_path": block.file_path,
+                "duplicate_sources": block.metadata.get("duplicate_sources", []),
+                "embedding": pseudo_embedding(block.content),
+            }
+
+            self.store.put_block(
+                PrecomputedBlock(
+                    block_id=block.id,
+                    source_uri=block.file_path or f"block:{block.id}",
                     content=block.content,
+                    token_count=block.token_count,
+                    fingerprint=normalized_text_hash(block.content),
+                    representations=representations,
+                    retrieval_features=features,
                     metadata=metadata,
-                    entry_type="precompute",
                 )
-                stored_entries += 1
+            )
+            stored_entries += 1
 
         return {
             "files_processed": len(results),
             "segments_processed": total_segments,
-            "blocks_processed": total_blocks,
+            "blocks_processed": len(all_blocks),
+            "blocks_after_dedup": len(deduped_blocks),
             "entries_stored": stored_entries,
         }
-
-    def _pseudo_embedding(self, text: str, dims: int = 16) -> list[float]:
-        """Deterministic embedding placeholder for latency precompute path."""
-        digest = compute_hash(text)
-        values: list[float] = []
-        for idx in range(dims):
-            start = (idx * 2) % len(digest)
-            chunk = digest[start : start + 2]
-            values.append(int(chunk, 16) / 255.0)
-        return values

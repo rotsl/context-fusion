@@ -20,7 +20,9 @@ class ContextFusionLlamaIndexRetriever:
 
     def retrieve(self, query: str) -> list[dict[str, Any]]:
         """Return selected blocks in a node-like dictionary form."""
-        result = self.runner.run(self.file_paths, budget=self.budget)
+        result = self.runner.run(
+            self.file_paths, budget=self.budget, query=query, task=query, task_type="chat"
+        )
         packet = result["context_packet"]
         return [
             {

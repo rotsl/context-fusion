@@ -4,12 +4,13 @@
 """Provider adapters and provider registry."""
 
 from .anthropic import AnthropicProvider
-from .base import LLMProvider
+from .base import LLMProvider, ProviderCapabilities
 from .mock_provider import MockProvider
 from .ollama import OllamaProvider
 from .openai import OpenAIProvider
 from .openai_compatible import OpenAICompatibleProvider
 from .registry import ProviderRegistry
+from .tokenizers import estimate_provider_tokens
 
 __all__ = [
     "AnthropicProvider",
@@ -18,5 +19,7 @@ __all__ = [
     "OllamaProvider",
     "OpenAICompatibleProvider",
     "OpenAIProvider",
+    "ProviderCapabilities",
     "ProviderRegistry",
+    "estimate_provider_tokens",
 ]

@@ -53,6 +53,30 @@ Each block may have multiple representations. The optimizer selects:
 
 The representation with highest utility per token is preferred.
 
+## Multi-Objective Planner Extension
+
+The knapsack foundation is preserved and extended with latency/cache-aware ranking:
+
+```
+maximize Σ(
+    w_u * utility_i
+  - w_r * risk_i
+  - w_t * token_cost_i
+  - w_l * latency_cost_i
+  + w_c * cacheability_i
+  + w_d * diversity_i
+) * z_i
+```
+
+Value-density is computed as:
+
+```
+value_density_i = (utility_i - risk_i) / max(tokens_i, 1)
+```
+
+The planner ranks representation candidates by multi-objective score + value density,
+selects at most one representation per parent block, and prefers cacheable variants when scores are close.
+
 ## Knapsack Solvers
 
 ### Greedy Algorithm

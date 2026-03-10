@@ -3,8 +3,10 @@
 
 """Canonical ContextFusion intermediate representation."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
+
+from .cache_segment import CacheSegment
 
 
 @dataclass
@@ -21,6 +23,10 @@ class SelectedBlock:
     freshness: float
     trust: float
     cacheable: bool
+    utility: float = 0.0
+    risk: float = 0.0
+    fingerprint: str | None = None
+    parent_block_id: str | None = None
 
 
 @dataclass
@@ -33,5 +39,7 @@ class ContextPacket:
     selected_blocks: list[SelectedBlock]
     citations: list[str]
     budget: dict[str, int]
-    cache_segments: list[str]
-    output_contract: dict[str, Any] | None
+    cache_segments: list[CacheSegment] = field(default_factory=list)
+    output_contract: dict[str, Any] | None = None
+    provider_hint: str | None = None
+    model_hint: str | None = None

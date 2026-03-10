@@ -42,7 +42,11 @@ class _MCPHandler(BaseHTTPRequestHandler):
                 result = context_search(payload.get("query", ""), int(payload.get("limit", 10)))
             elif self.path == "/tools/context.compile":
                 result = context_compile(
-                    payload.get("file_paths", []), int(payload.get("budget", 3000))
+                    payload.get("file_paths", []),
+                    int(payload.get("budget", 3000)),
+                    str(payload.get("provider", "openai")),
+                    str(payload.get("model", "gpt-4o-mini")),
+                    str(payload.get("mode", "chat")),
                 )
             elif self.path == "/tools/context.plan":
                 result = context_plan(payload.get("task", ""), int(payload.get("budget", 8000)))

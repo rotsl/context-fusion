@@ -3,7 +3,13 @@
 
 """Tests for two-stage retrieval components."""
 
-from context_portfolio_optimizer.retrieval import BM25Retriever, SimpleReranker
+from context_portfolio_optimizer.precompute.store import PrecomputedBlock, PrecomputeStore
+from context_portfolio_optimizer.retrieval import (
+    BM25Retriever,
+    SimpleReranker,
+    rerank_candidates,
+    retrieve_candidates,
+)
 from context_portfolio_optimizer.types import ContextBlock, SourceType
 
 
@@ -37,3 +43,22 @@ def test_reranker_orders_by_similarity_and_trust():
     reranker = SimpleReranker()
     ranked = reranker.rerank("capital france", _blocks(), top_k=2)
     assert ranked[0].id == "b1"
+
+
+def test_candidate_pipeline_from_precompute_store(tmp_path):
+    store = PrecomputeStore(store_dir=tmp_path / "precompute")
+    store.put_block(
+        PrecomputedBlock(
+            block_id="b1",
+            source_uri="doc.txt",
+            content="Paris is the capital of France.",
+            token_count=6,
+            fingerprint="fp1",
+            representations={"extractive_span": "Paris is capital of France"},
+        )
+    )
+
+    retrieved = retrieve_candidates(query="capital france", store=store, limit=10)
+    reranked = rerank_candidates(query="capital france", candidates=retrieved, limit=5)
+    assert reranked
+    assert reranked[0].id == "b1"

@@ -9,7 +9,7 @@ from typing import Any
 
 from context_portfolio_optimizer.ablations.runner import AblationRunner
 from context_portfolio_optimizer.allocation.budget import BudgetManager
-from context_portfolio_optimizer.assembly.compiler import compile_for_chat
+from context_portfolio_optimizer.assembly.compiler import compile_packet
 from context_portfolio_optimizer.memory.store import MemoryStore
 from context_portfolio_optimizer.orchestration.planner import Planner
 from context_portfolio_optimizer.orchestration.runner import PipelineRunner
@@ -21,14 +21,23 @@ def context_search(query: str, limit: int = 10) -> dict[str, Any]:
     return {"results": store.search(query=query, limit=limit)}
 
 
-def context_compile(file_paths: list[str], budget: int = 3000) -> dict[str, Any]:
+def context_compile(
+    file_paths: list[str],
+    budget: int = 3000,
+    provider: str = "openai",
+    model: str = "gpt-4o-mini",
+    mode: str = "chat",
+) -> dict[str, Any]:
     """Compile optimized context into chat payload."""
     runner = PipelineRunner()
-    result = runner.run(file_paths=file_paths, budget=budget)
+    result = runner.run(
+        file_paths=file_paths, budget=budget, task_type=mode, provider=provider, model=model
+    )
     packet = result["context_packet"]
+    compiled = compile_packet(packet=packet, provider=provider, model=model, mode=mode)
     return {
         "packet": packet,
-        "messages": compile_for_chat(packet),
+        "compiled": compiled,
         "stats": result["stats"],
     }
 

@@ -9,12 +9,15 @@ from .citation_pointer import CitationPointerRepresentation
 from .code_signature_summary import CodeSignatureRepresentation
 from .extracted_facts import ExtractedFactsRepresentation
 from .full_text import FullTextRepresentation
+from .registry import RepresentationRegistry, RepresentationVariant
 from .structured_json import StructuredJsonRepresentation
 from .table_summary import TableSummaryRepresentation
 
 __all__ = [
     "BaseRepresentation",
     "RepresentationGenerator",
+    "RepresentationRegistry",
+    "RepresentationVariant",
     "FullTextRepresentation",
     "BulletSummaryRepresentation",
     "StructuredJsonRepresentation",

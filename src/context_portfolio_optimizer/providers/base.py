@@ -5,9 +5,21 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Any, Protocol
 
 from context_portfolio_optimizer.utils.tokenization import count_tokens
+
+
+@dataclass(frozen=True)
+class ProviderCapabilities:
+    """Capability flags for provider adapters."""
+
+    supports_tools: bool
+    supports_structured_output: bool
+    supports_prompt_cache: bool
+    supports_system_messages: bool
+    local: bool
 
 
 class LLMProvider(Protocol):
@@ -35,6 +47,17 @@ class LLMProvider(Protocol):
     ) -> dict[str, Any]:
         """Perform a tool-call capable request."""
 
+    def capabilities(self) -> ProviderCapabilities:
+        """Return provider capability flags."""
+
+    def build_request(
+        self,
+        compiled_packet: dict[str, Any],
+        model: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Build provider-native request from compiled packet."""
+
 
 class BaseAdapter:
     """Shared implementation pieces for provider adapters."""
@@ -43,3 +66,15 @@ class BaseAdapter:
         """Estimate token count using project tokenizer."""
         _ = model
         return count_tokens(text)
+
+    def build_request(
+        self,
+        compiled_packet: dict[str, Any],
+        model: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        """Build request payload for provider APIs."""
+        messages = compiled_packet.get("messages", [])
+        payload: dict[str, Any] = {"model": model, "messages": messages}
+        payload.update(kwargs)
+        return payload

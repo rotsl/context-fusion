@@ -23,7 +23,12 @@ def main():
         console.print("Creating placeholder dataset...")
         dataset_path.parent.mkdir(parents=True, exist_ok=True)
         with open(dataset_path, "w") as f:
-            f.write(json.dumps({"task_id": "rag_001", "query": "Sample query", "expected": "Sample answer"}) + "\n")
+            f.write(
+                json.dumps(
+                    {"task_id": "rag_001", "query": "Sample query", "expected": "Sample answer"}
+                )
+                + "\n"
+            )
 
     console.print("[green]RAG evaluation placeholder - implement full evaluation[/green]")
 

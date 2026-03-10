@@ -34,3 +34,12 @@ class SimpleReranker:
 
         scored.sort(key=lambda pair: pair[0], reverse=True)
         return [block for _, block in scored[:top_k]]
+
+
+def rerank_candidates(
+    query: str,
+    candidates: list[ContextBlock],
+    limit: int = 20,
+) -> list[ContextBlock]:
+    """Rerank retrieval candidates with a lightweight deterministic model."""
+    return SimpleReranker().rerank(query=query, blocks=candidates, top_k=limit)

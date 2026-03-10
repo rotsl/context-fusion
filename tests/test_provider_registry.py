@@ -11,6 +11,8 @@ from context_portfolio_optimizer.providers.registry import ProviderRegistry
 def test_provider_registry_lists_defaults():
     names = ProviderRegistry.available()
     assert "anthropic" in names
+    assert "grok" in names
+    assert "kimi" in names
     assert "ollama" in names
     assert "openai" in names
     assert "openai_compatible" in names

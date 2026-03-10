@@ -3,6 +3,6 @@
 
 """Context compilation utilities."""
 
-from .compiler import compile_for_chat, compile_for_provider, compile_plain_text
+from .compiler import compile_for_chat, compile_for_provider, compile_packet, compile_plain_text
 
-__all__ = ["compile_for_chat", "compile_for_provider", "compile_plain_text"]
+__all__ = ["compile_for_chat", "compile_for_provider", "compile_packet", "compile_plain_text"]

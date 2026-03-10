@@ -54,6 +54,11 @@ def _register_defaults() -> None:
         return OpenAICompatibleProvider(base_url=base_url, api_key=api_key)
 
     ProviderRegistry.register("openai_compatible", _openai_compat_factory)
+    ProviderRegistry.register("grok", _openai_compat_factory)
+    ProviderRegistry.register("kimi", _openai_compat_factory)
+    ProviderRegistry.register("deepseek", _openai_compat_factory)
+    ProviderRegistry.register("together", _openai_compat_factory)
+    ProviderRegistry.register("groq", _openai_compat_factory)
 
 
 _register_defaults()

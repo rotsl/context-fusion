@@ -29,7 +29,9 @@ class ContextFusionLangChainRetriever:
 
     def get_relevant_documents(self, query: str) -> list[LangChainDocument]:
         """Return optimized selected blocks as documents."""
-        result = self.runner.run(self.file_paths, budget=self.budget)
+        result = self.runner.run(
+            self.file_paths, budget=self.budget, query=query, task=query, task_type="chat"
+        )
         packet = result["context_packet"]
         return [
             LangChainDocument(

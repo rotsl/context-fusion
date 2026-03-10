@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from context_portfolio_optimizer.assembly.compiler import compile_for_chat
+from context_portfolio_optimizer.fusion.incremental import IncrementalFusion
 from context_portfolio_optimizer.orchestration.runner import PipelineRunner
 
 if TYPE_CHECKING:
@@ -35,8 +36,12 @@ def agent_step(
     task = str(next_state.get("task", "agent_step"))
 
     runner = next_state.get("runner") or PipelineRunner()
-    result = runner.run(file_paths=file_paths, budget=budget)
+    result = runner.run(
+        file_paths=file_paths, budget=budget, task=task, task_type="agent", query=task
+    )
     packet = result["context_packet"]
+    incremental = next_state.get("incremental_fusion") or IncrementalFusion()
+    delta = incremental.next_delta(packet)
 
     messages = compile_for_chat(packet)
     messages.append({"role": "user", "content": task})
@@ -51,12 +56,15 @@ def agent_step(
         {
             "task": task,
             "context_packet": packet,
+            "delta": delta,
             "response": response,
         }
     )
 
     next_state["last_result"] = result
+    next_state["last_delta"] = delta
     next_state["last_response"] = response
     next_state["memory"] = memory
+    next_state["incremental_fusion"] = incremental
 
     return next_state

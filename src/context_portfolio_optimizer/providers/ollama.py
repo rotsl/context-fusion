@@ -9,7 +9,8 @@ from typing import Any
 
 import requests
 
-from .base import BaseAdapter
+from .base import BaseAdapter, ProviderCapabilities
+from .tokenizers import estimate_provider_tokens
 
 
 class OllamaProvider(BaseAdapter):
@@ -20,6 +21,31 @@ class OllamaProvider(BaseAdapter):
 
     def name(self) -> str:
         return "ollama"
+
+    def capabilities(self) -> ProviderCapabilities:
+        return ProviderCapabilities(
+            supports_tools=True,
+            supports_structured_output=False,
+            supports_prompt_cache=False,
+            supports_system_messages=True,
+            local=True,
+        )
+
+    def estimate_tokens(self, text: str, model: str) -> int:
+        return estimate_provider_tokens(self.name(), text, model)
+
+    def build_request(
+        self,
+        compiled_packet: dict[str, Any],
+        model: str,
+        **kwargs: Any,
+    ) -> dict[str, Any]:
+        request = dict(compiled_packet.get("request", {}))
+        request.setdefault("model", model)
+        request.setdefault("messages", compiled_packet.get("messages", []))
+        request.setdefault("stream", False)
+        request.update(kwargs)
+        return request
 
     def chat(
         self,

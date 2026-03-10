@@ -8,7 +8,7 @@ from context_portfolio_optimizer.assembly.compiler import (
     compile_for_provider,
     compile_plain_text,
 )
-from context_portfolio_optimizer.ir import ContextPacket, SelectedBlock
+from context_portfolio_optimizer.ir import CacheSegment, ContextPacket, SelectedBlock
 
 
 def _packet() -> ContextPacket:
@@ -32,7 +32,15 @@ def _packet() -> ContextPacket:
         ],
         citations=["doc.txt"],
         budget={"retrieval": 1000},
-        cache_segments=["blk_1"],
+        cache_segments=[
+            CacheSegment(
+                name="block:blk_1",
+                text="Important context block",
+                stable=True,
+                cache_key="seg:test",
+                tokens_est=4,
+            )
+        ],
         output_contract=None,
     )
 

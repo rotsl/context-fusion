@@ -4,5 +4,6 @@
 """Precompute pipeline package."""
 
 from .runner import PrecomputeRunner
+from .store import PrecomputedBlock, PrecomputeStore
 
-__all__ = ["PrecomputeRunner"]
+__all__ = ["PrecomputeRunner", "PrecomputeStore", "PrecomputedBlock"]
