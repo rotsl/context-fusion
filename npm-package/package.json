@@ -1,0 +1,40 @@
+{
+  "name": "@rotsl/contextfusion",
+  "version": "0.1.0",
+  "description": "General-user npm wrapper for ContextFusion CLI (run, compile, ui, serve-mcp).",
+  "type": "module",
+  "bin": {
+    "contextfusion": "./bin/contextfusion.js",
+    "cfusion": "./bin/contextfusion.js"
+  },
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node ./bin/contextfusion.js help"
+  },
+  "keywords": [
+    "contextfusion",
+    "llm",
+    "prompt",
+    "mcp",
+    "anthropic",
+    "openai",
+    "ollama"
+  ],
+  "author": "Rohan R",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rotsl/context-fusion.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rotsl/context-fusion/issues"
+  },
+  "homepage": "https://github.com/rotsl/context-fusion#readme",
+  "engines": {
+    "node": ">=18"
+  }
+}

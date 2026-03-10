@@ -128,7 +128,28 @@ If you only want to use ContextFusion (not develop it), you mainly need:
 2. `.env` for provider API keys
 3. `configs/` for provider and budget config overrides (optional)
 4. `examples/gui_input/` for quick GUI test input
-5. `cpo` CLI commands (`run`, `compile`, `ui`, `serve-mcp`)
+5. CLI commands (`cpo` or npm wrapper `contextfusion`: `run`, `compile`, `ui`, `serve-mcp`)
+
+### NPM Package (General Users)
+
+If you prefer npm as your entrypoint (without dev setup), use the npm wrapper:
+
+```bash
+# from this repo (works immediately)
+npm install -g ./npm-package
+
+# one-time setup (installs Python package + creates .env template)
+npx @rotsl/contextfusion setup
+
+# create or refresh .env template
+npx @rotsl/contextfusion env
+
+# run core user workflows
+npx @rotsl/contextfusion run ./examples/gui_input --query "Summarize" --provider anthropic --model claude-sonnet-4-6
+npx @rotsl/contextfusion compile ./docs --mode qa --provider anthropic --model claude-sonnet-4-6
+npx @rotsl/contextfusion ui --host <host> --port 8080
+npx @rotsl/contextfusion serve-mcp --host <host> --port 8765
+```
 
 Provider/client mapping:
 
@@ -566,6 +587,11 @@ context-fusion/
 ├── pyproject.toml
 ├── Dockerfile
 ├── docker-compose.yml
+├── npm-package/            # npm wrapper package for general users
+│   ├── package.json
+│   ├── README.md
+│   ├── LICENSE
+│   └── bin/contextfusion.js
 ├── src/context_portfolio_optimizer/
 │   ├── ingestion/          # File loaders
 │   ├── normalization/      # Block building

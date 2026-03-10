@@ -148,3 +148,11 @@ benchmarks/datasets/rag_tasks.jsonl
 examples/output/
 *.trainedmodel
 CONTEXTFUSION_PAPER_2026.tex
+
+# Node / npm
+node_modules/
+.npm/
+npm-debug.log*
+npm-package/package-lock.json
+npm-package/.npm/
+npm-package/*.tgz
