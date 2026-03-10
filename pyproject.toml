@@ -1,0 +1,206 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025–2026 Rohan R @rotsl
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "context-portfolio-optimizer"
+dynamic = ["version"]
+description = "A framework for optimizing LLM context usage across heterogeneous data sources"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+authors = [
+    { name = "Rohan R", email = "rohan@rotsl.dev" },
+]
+keywords = [
+    "llm",
+    "context",
+    "optimization",
+    "rag",
+    "token-budget",
+    "knapsack",
+    "prompt-engineering",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "pydantic>=2.5.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    "PyYAML>=6.0.1",
+    "numpy>=1.26.0",
+    "pandas>=2.1.0",
+    "pillow>=10.1.0",
+    "tiktoken>=0.5.2",
+]
+
+[project.optional-dependencies]
+documents = [
+    "pdfminer.six>=20221105",
+    "python-docx>=1.1.0",
+]
+ocr = [
+    "pytesseract>=0.3.10",
+]
+code = [
+    "tree-sitter>=0.20.4",
+    "tree-sitter-python>=0.20.4",
+    "tree-sitter-javascript>=0.20.4",
+    "tree-sitter-typescript>=0.20.4",
+    "tree-sitter-go>=0.20.0",
+    "tree-sitter-rust>=0.20.4",
+    "tree-sitter-java>=0.20.2",
+    "tree-sitter-c>=0.20.6",
+    "tree-sitter-cpp>=0.20.5",
+]
+ml = [
+    "scikit-learn>=1.3.0",
+    "scipy>=1.11.0",
+]
+providers = [
+    "openai>=1.6.0",
+    "anthropic>=0.8.0",
+    "httpx>=0.25.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.9",
+    "mypy>=1.7.0",
+    "pre-commit>=3.6.0",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
+]
+all = [
+    "context-portfolio-optimizer[documents,ocr,code,ml,providers]",
+]
+
+[project.scripts]
+cpo = "context_portfolio_optimizer.cli:main"
+context-portfolio-optimizer = "context_portfolio_optimizer.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rotsl/context-fusion"
+Documentation = "https://rotsl.github.io/context-fusion"
+Repository = "https://github.com/rotsl/context-fusion"
+Issues = "https://github.com/rotsl/context-fusion/issues"
+Changelog = "https://github.com/rotsl/context-fusion/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/context_portfolio_optimizer/version.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+    "/LICENSE",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/context_portfolio_optimizer"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+select = [
+    "E",   # pycodestyle errors
+    "F",   # Pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "W",   # pycodestyle warnings
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "SIM", # flake8-simplify
+    "TCH", # flake8-type-checking
+    "TID", # flake8-tidy-imports
+    "Q",   # flake8-quotes
+    "FLY", # flynt
+    "PERF",# perflint
+    "RUF", # ruff-specific rules
+]
+ignore = [
+    "E501",  # Line too long (handled by formatter)
+    "SIM108",# Use ternary operator
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"
+
+[tool.ruff.isort]
+known-first-party = ["context_portfolio_optimizer"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+show_error_codes = true
+strict_equality = true
+extra_checks = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pdfminer.*",
+    "docx.*",
+    "pytesseract.*",
+    "tree_sitter.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--cov=context_portfolio_optimizer",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "requires_ocr: marks tests requiring OCR dependencies",
+    "requires_pdf: marks tests requiring PDF dependencies",
+    "requires_docx: marks tests requiring DOCX dependencies",
+]
+
+[tool.coverage.run]
+source = ["src/context_portfolio_optimizer"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

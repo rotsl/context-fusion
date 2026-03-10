@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025–2026 Rohan R @rotsl
+
+# Coding Agent Budget Configuration
+
+budget:
+  instructions: 1000
+  retrieval: 2000
+  memory: 2000
+  examples: 2000
+  tool_trace: 1000
+  output_reserve: 2000

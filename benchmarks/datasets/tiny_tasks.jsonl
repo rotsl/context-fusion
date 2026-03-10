@@ -1,0 +1,3 @@
+{"task_id": "tiny_001", "query": "What is the capital of France?", "expected_answer": "Paris", "context_files": ["france.txt"]}
+{"task_id": "tiny_002", "query": "Explain Python list comprehensions", "expected_answer": "concise syntax", "context_files": ["python_guide.md"]}
+{"task_id": "tiny_003", "query": "What is 2+2?", "expected_answer": "4", "context_files": []}

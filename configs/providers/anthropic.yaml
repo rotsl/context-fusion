@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025–2026 Rohan R @rotsl
+
+# Anthropic Provider Configuration
+
+provider:
+  name: anthropic
+  model: claude-3-opus-20240229
+  timeout: 60
+  max_retries: 3
+  # api_key: set via ANTHROPIC_API_KEY environment variable

@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025–2026 Rohan R @rotsl
+
+# Local LLM Provider Configuration
+
+provider:
+  name: openai  # Uses OpenAI-compatible API
+  base_url: http://localhost:8000/v1
+  model: local-model
+  timeout: 120
+  max_retries: 1

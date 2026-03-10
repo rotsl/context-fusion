@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025–2026 Rohan R @rotsl
+
+# Chat Memory Budget Configuration
+
+budget:
+  instructions: 500
+  retrieval: 500
+  memory: 6000
+  examples: 0
+  tool_trace: 0
+  output_reserve: 1000

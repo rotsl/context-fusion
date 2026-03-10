@@ -1,0 +1,51 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2025–2026 Rohan R @rotsl
+
+# ContextFusion Default Configuration
+
+paths:
+  cache_dir: .cpo_cache
+  memory_dir: .cpo_memory
+  telemetry_dir: .cpo_telemetry
+
+budget:
+  instructions: 1000
+  retrieval: 3000
+  memory: 2000
+  examples: 1500
+  tool_trace: 1000
+  output_reserve: 1000
+
+scoring:
+  utility_weights:
+    retrieval: 0.25
+    trust: 0.20
+    freshness: 0.15
+    structure: 0.15
+    diversity: 0.15
+    token_cost: -0.10
+
+  risk_weights:
+    hallucination_proxy: 0.40
+    staleness: 0.35
+    privacy: 0.25
+
+  reward_weights:
+    alpha: 1.0
+    beta: 0.1
+    gamma: 0.01
+    delta: 0.5
+
+provider:
+  name: mock
+  model: default
+  timeout: 60
+  max_retries: 3
+
+features:
+  enable_telemetry: true
+  enable_ablations: true
+  enable_compression: true
+
+logging:
+  level: INFO
