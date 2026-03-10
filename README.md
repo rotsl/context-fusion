@@ -3,6 +3,7 @@
 [![CI](https://github.com/rotsl/context-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/rotsl/context-fusion/actions)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![npm](https://img.shields.io/npm/v/%40rotsl%2Fcontextfusion?label=npm)](https://www.npmjs.com/package/@rotsl/contextfusion)
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=rotsl.context-fusion)](https://github.com/rotsl/context-fusion)
 [![GitHub forks](https://img.shields.io/github/forks/rotsl/context-fusion?style=flat)](https://github.com/rotsl/context-fusion/network/members)
 [![GitHub last commit](https://img.shields.io/github/last-commit/rotsl/context-fusion)](https://github.com/rotsl/context-fusion/commits/main)

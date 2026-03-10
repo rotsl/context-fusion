@@ -4,8 +4,8 @@
   "description": "General-user npm wrapper for ContextFusion CLI (run, compile, ui, serve-mcp).",
   "type": "module",
   "bin": {
-    "contextfusion": "./bin/contextfusion.js",
-    "cfusion": "./bin/contextfusion.js"
+    "contextfusion": "bin/contextfusion.js",
+    "cfusion": "bin/contextfusion.js"
   },
   "files": [
     "bin/",
@@ -36,5 +36,8 @@
   "homepage": "https://github.com/rotsl/context-fusion#readme",
   "engines": {
     "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
