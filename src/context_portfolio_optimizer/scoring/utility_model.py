@@ -33,13 +33,16 @@ class UtilityModel:
         Returns:
             Utility score (can be negative)
         """
+        # Convert raw token count to a normalized cost term.
+        token_cost = features.token_count / 1000.0
+
         score = (
             self.weights["retrieval"] * features.retrieval
             + self.weights["trust"] * features.trust
             + self.weights["freshness"] * features.freshness
             + self.weights["structure"] * features.structure_score
             + self.weights["diversity"] * features.diversity
-            + self.weights["token_cost"] * features.token_count
+            + self.weights["token_cost"] * token_cost
         )
 
         return score
@@ -63,6 +66,7 @@ class UtilityModel:
         if features is None:
             if feature_extractor is None:
                 from .features import FeatureExtractor
+
                 feature_extractor = FeatureExtractor()
             features = feature_extractor.extract(block)
 
@@ -84,6 +88,7 @@ class UtilityModel:
         """
         if feature_extractor is None:
             from .features import FeatureExtractor
+
             feature_extractor = FeatureExtractor()
 
         features_list = feature_extractor.extract_batch(blocks)

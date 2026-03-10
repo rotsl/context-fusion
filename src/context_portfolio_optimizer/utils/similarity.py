@@ -91,7 +91,7 @@ def ngram_similarity(text1: str, text2: str, n: int = 2) -> float:
 
     def get_ngrams(text: str, n: int) -> set:
         text = text.lower().replace(" ", "")
-        return set(text[i:i+n] for i in range(len(text) - n + 1))
+        return set(text[i : i + n] for i in range(len(text) - n + 1))
 
     ngrams1 = get_ngrams(text1, n)
     ngrams2 = get_ngrams(text2, n)

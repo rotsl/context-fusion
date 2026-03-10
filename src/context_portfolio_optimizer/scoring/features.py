@@ -17,7 +17,9 @@ class FeatureExtractor:
     def __init__(self):
         self._block_history: list[ContextBlock] = []
 
-    def extract(self, block: ContextBlock, all_blocks: list[ContextBlock] | None = None) -> FeatureVector:
+    def extract(
+        self, block: ContextBlock, all_blocks: list[ContextBlock] | None = None
+    ) -> FeatureVector:
         """Extract features from a context block.
 
         Args:
@@ -67,17 +69,19 @@ class FeatureExtractor:
         Returns:
             Numpy array
         """
-        return np.array([
-            features.token_count,
-            features.source_type_score,
-            features.structure_score,
-            features.freshness,
-            features.trust,
-            features.retrieval,
-            features.diversity,
-            features.redundancy,
-            features.privacy_risk,
-        ])
+        return np.array(
+            [
+                features.token_count,
+                features.source_type_score,
+                features.structure_score,
+                features.freshness,
+                features.trust,
+                features.retrieval,
+                features.diversity,
+                features.redundancy,
+                features.privacy_risk,
+            ]
+        )
 
     def _source_type_score(self, block: ContextBlock) -> float:
         """Compute source type quality score.
@@ -205,16 +209,18 @@ class FeatureExtractor:
         # Convert back to FeatureVectors
         normalized = []
         for row in matrix:
-            normalized.append(FeatureVector(
-                token_count=row[0],
-                source_type_score=row[1],
-                structure_score=row[2],
-                freshness=row[3],
-                trust=row[4],
-                retrieval=row[5],
-                diversity=row[6],
-                redundancy=row[7],
-                privacy_risk=row[8],
-            ))
+            normalized.append(
+                FeatureVector(
+                    token_count=row[0],
+                    source_type_score=row[1],
+                    structure_score=row[2],
+                    freshness=row[3],
+                    trust=row[4],
+                    retrieval=row[5],
+                    diversity=row[6],
+                    redundancy=row[7],
+                    privacy_risk=row[8],
+                )
+            )
 
         return normalized

@@ -13,6 +13,7 @@ from rich.table import Table
 from . import version
 from .allocation.budget import BudgetManager
 from .allocation.portfolio import PortfolioSelector
+from .exceptions import ConfigurationError
 from .ingestion.dispatcher import IngestionDispatcher
 from .logging_utils import setup_logging
 from .memory.store import MemoryStore
@@ -32,14 +33,19 @@ console = Console()
 def get_settings(config: Optional[str] = None) -> Settings:
     """Load settings from config file."""
     if config:
-        return Settings.from_yaml(config)
+        try:
+            return Settings.from_yaml(config)
+        except ConfigurationError:
+            return Settings.load()
     return Settings.load()
 
 
 @app.command()
 def ingest(
     path: str = typer.Argument(..., help="Path to file or directory"),
-    recursive: bool = typer.Option(True, "--recursive/--no-recursive", help="Process directories recursively"),
+    recursive: bool = typer.Option(
+        True, "--recursive/--no-recursive", help="Process directories recursively"
+    ),
     config: Optional[str] = typer.Option(None, "--config", "-c", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output"),
 ):
@@ -58,7 +64,7 @@ def ingest(
         console.print(f"[green]Extracted {len(blocks)} blocks from {path}[/green]")
 
         for i, block in enumerate(blocks[:5]):  # Show first 5
-            console.print(f"\n[bold]Block {i+1}:[/bold]")
+            console.print(f"\n[bold]Block {i + 1}:[/bold]")
             console.print(f"  ID: {block.id}")
             console.print(f"  Type: {block.source_type.name}")
             console.print(f"  Tokens: {block.token_count}")
@@ -102,11 +108,11 @@ def plan(
     console.print("[bold]Execution Plan:[/bold]")
     console.print(f"Task: {plan_result['task']}")
     console.print(f"\nBudget Allocation:")
-    for category, tokens in plan_result['budget_allocation'].items():
+    for category, tokens in plan_result["budget_allocation"].items():
         console.print(f"  {category}: {tokens} tokens")
 
     console.print(f"\nPhases:")
-    for phase in plan_result['phases']:
+    for phase in plan_result["phases"]:
         console.print(f"  - {phase['name']}: {phase['description']}")
 
     cost = planner.estimate_cost(plan_result)
@@ -138,11 +144,11 @@ def run(
     # Display results
     console.print("[bold green]Pipeline Complete![/bold green]")
     console.print(f"\nStats:")
-    for key, value in result['stats'].items():
+    for key, value in result["stats"].items():
         console.print(f"  {key}: {value}")
 
     # Display context preview
-    context = result['context']
+    context = result["context"]
     console.print(f"\n[bold]Context Preview:[/bold]")
     console.print(context[:500] + "..." if len(context) > 500 else context)
 
@@ -163,9 +169,11 @@ def benchmark(
 
     if dataset == "tiny":
         from benchmarks.runners.run_tiny_eval import main as run_tiny
+
         run_tiny()
     elif dataset == "rag":
         from benchmarks.runners.run_rag_eval import main as run_rag
+
         run_rag()
     else:
         console.print(f"[red]Unknown dataset: {dataset}[/red]")
@@ -206,9 +214,9 @@ def memory_stats(
     console.print(f"  Total entries: {stats['total_entries']}")
     console.print(f"  Size: {stats['total_size_bytes'] / 1024:.2f} KB")
 
-    if stats['types']:
+    if stats["types"]:
         console.print(f"\n  Entry types:")
-        for entry_type, count in stats['types'].items():
+        for entry_type, count in stats["types"].items():
             console.print(f"    {entry_type}: {count}")
 
 
@@ -233,7 +241,7 @@ def ablate(
         console.print(f"[red]Path not found: {path}[/red]")
         raise typer.Exit(1)
 
-    portfolio = result['portfolio']
+    portfolio = result["portfolio"]
 
     # Run ablation
     from .ablations.runner import AblationRunner
@@ -261,7 +269,7 @@ def ablate(
     console.print(table)
 
 
-@app.command()
+@app.command("version")
 def version_cmd():
     """Show version information."""
     console.print(f"ContextFusion version {version.VERSION}")

@@ -41,6 +41,8 @@ class TestCLI:
 
     def test_memory_stats_empty(self):
         with tempfile.TemporaryDirectory() as temp_dir:
-            result = runner.invoke(app, ["memory-stats", "--config", f"{temp_dir}/nonexistent.yaml"])
+            result = runner.invoke(
+                app, ["memory-stats", "--config", f"{temp_dir}/nonexistent.yaml"]
+            )
             # Should not crash even with no memory
             assert result.exit_code == 0

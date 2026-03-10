@@ -13,9 +13,7 @@ logger = get_logger("image_loader")
 class ImageLoader(BaseLoader):
     """Loader for image files using OCR."""
 
-    SUPPORTED_EXTENSIONS = {
-        ".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif", ".webp"
-    }
+    SUPPORTED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif", ".webp"}
 
     def __init__(self):
         self._tesseract_available = None
@@ -100,34 +98,42 @@ class ImageLoader(BaseLoader):
                 text = pytesseract.image_to_string(img)
 
                 if text.strip():
-                    segments.append(RawSegment(
-                        text=text.strip(),
-                        metadata={**metadata, "ocr": True},
-                        source_path=file_path,
-                        image_caption=f"Image ({width}x{height} {format_name})",
-                    ))
+                    segments.append(
+                        RawSegment(
+                            text=text.strip(),
+                            metadata={**metadata, "ocr": True},
+                            source_path=file_path,
+                            image_caption=f"Image ({width}x{height} {format_name})",
+                        )
+                    )
                 else:
-                    segments.append(RawSegment(
-                        text="[Image: No text detected]",
-                        metadata={**metadata, "ocr": True, "no_text": True},
-                        source_path=file_path,
-                        image_caption=f"Image ({width}x{height} {format_name})",
-                    ))
+                    segments.append(
+                        RawSegment(
+                            text="[Image: No text detected]",
+                            metadata={**metadata, "ocr": True, "no_text": True},
+                            source_path=file_path,
+                            image_caption=f"Image ({width}x{height} {format_name})",
+                        )
+                    )
             else:
                 # No OCR, just return image metadata
-                segments.append(RawSegment(
-                    text=f"[Image: {width}x{height} {format_name} - OCR not available]",
-                    metadata={**metadata, "ocr": False},
-                    source_path=file_path,
-                    image_caption=f"Image ({width}x{height} {format_name})",
-                ))
+                segments.append(
+                    RawSegment(
+                        text=f"[Image: {width}x{height} {format_name} - OCR not available]",
+                        metadata={**metadata, "ocr": False},
+                        source_path=file_path,
+                        image_caption=f"Image ({width}x{height} {format_name})",
+                    )
+                )
 
         except Exception as e:
             logger.error(f"Error loading image {file_path}: {e}")
-            segments.append(RawSegment(
-                text=f"[Error loading image: {e}]",
-                metadata={"error": str(e)},
-                source_path=file_path,
-            ))
+            segments.append(
+                RawSegment(
+                    text=f"[Error loading image: {e}]",
+                    metadata={"error": str(e)},
+                    source_path=file_path,
+                )
+            )
 
         return segments

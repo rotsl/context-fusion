@@ -68,6 +68,7 @@ class RiskModel:
         if features is None:
             if feature_extractor is None:
                 from .features import FeatureExtractor
+
                 feature_extractor = FeatureExtractor()
             features = feature_extractor.extract(block)
 
@@ -89,6 +90,7 @@ class RiskModel:
         """
         if feature_extractor is None:
             from .features import FeatureExtractor
+
             feature_extractor = FeatureExtractor()
 
         features_list = feature_extractor.extract_batch(blocks)

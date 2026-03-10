@@ -118,10 +118,12 @@ class StructureDetector:
             if heading_match:
                 # Save previous section
                 if current_content:
-                    sections.append({
-                        "heading": current_heading,
-                        "content": "\n".join(current_content).strip(),
-                    })
+                    sections.append(
+                        {
+                            "heading": current_heading,
+                            "content": "\n".join(current_content).strip(),
+                        }
+                    )
                 current_heading = heading_match.group(1).lstrip("# ")
                 current_content = []
             else:
@@ -129,9 +131,11 @@ class StructureDetector:
 
         # Don't forget the last section
         if current_content:
-            sections.append({
-                "heading": current_heading,
-                "content": "\n".join(current_content).strip(),
-            })
+            sections.append(
+                {
+                    "heading": current_heading,
+                    "content": "\n".join(current_content).strip(),
+                }
+            )
 
         return sections

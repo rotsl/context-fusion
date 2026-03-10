@@ -21,21 +21,17 @@ TOKENS_PER_CHARACTER: Final[float] = 0.25
 DEFAULT_ENCODING: Final[str] = "cl100k_base"  # OpenAI's encoding
 
 # File type mappings
-TEXT_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".txt", ".log", ".md", ".markdown", ".rst"
-})
+TEXT_EXTENSIONS: Final[frozenset[str]] = frozenset({".txt", ".log", ".md", ".markdown", ".rst"})
 
-DOCUMENT_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".pdf", ".docx", ".doc"
-})
+DOCUMENT_EXTENSIONS: Final[frozenset[str]] = frozenset({".pdf", ".docx", ".doc"})
 
-STRUCTURED_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".csv", ".tsv", ".json", ".jsonl", ".yaml", ".yml"
-})
+STRUCTURED_EXTENSIONS: Final[frozenset[str]] = frozenset(
+    {".csv", ".tsv", ".json", ".jsonl", ".yaml", ".yml"}
+)
 
-IMAGE_EXTENSIONS: Final[frozenset[str]] = frozenset({
-    ".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif", ".webp"
-})
+IMAGE_EXTENSIONS: Final[frozenset[str]] = frozenset(
+    {".png", ".jpg", ".jpeg", ".tiff", ".tif", ".bmp", ".gif", ".webp"}
+)
 
 CODE_EXTENSIONS: Final[dict[str, str]] = {
     ".py": "python",
@@ -95,8 +91,8 @@ DEFAULT_RISK_WEIGHTS: Final[dict[str, float]] = {
 # Evaluation reward weights
 DEFAULT_REWARD_WEIGHTS: Final[dict[str, float]] = {
     "alpha": 1.0,  # quality
-    "beta": 0.1,   # cost
-    "gamma": 0.01, # latency
+    "beta": 0.1,  # cost
+    "gamma": 0.01,  # latency
     "delta": 0.5,  # risk
 }
 
@@ -110,15 +106,17 @@ SECONDS_PER_DAY: Final[int] = 86400
 DEFAULT_FRESHNESS_HALFLIFE_DAYS: Final[int] = 30
 
 # Representation types
-REPRESENTATION_TYPES: Final[frozenset[str]] = frozenset({
-    "full_text",
-    "bullet_summary",
-    "structured_json",
-    "extracted_facts",
-    "citation_pointer",
-    "table_summary",
-    "code_signature_summary",
-})
+REPRESENTATION_TYPES: Final[frozenset[str]] = frozenset(
+    {
+        "full_text",
+        "bullet_summary",
+        "structured_json",
+        "extracted_facts",
+        "citation_pointer",
+        "table_summary",
+        "code_signature_summary",
+    }
+)
 
 # Default representation priorities
 DEFAULT_REPRESENTATION_PRIORITY: Final[list[str]] = [

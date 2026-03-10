@@ -71,9 +71,7 @@ class PortfolioSelector:
         risk_scores = self.risk_model.score_blocks(blocks, self.feature_extractor)
 
         # Create knapsack items
-        items = self.knapsack.create_items_from_blocks(
-            blocks, utility_scores, risk_scores
-        )
+        items = self.knapsack.create_items_from_blocks(blocks, utility_scores, risk_scores)
 
         # Optimize
         selected_items = self.knapsack.optimize(items, budget, risk_tolerance)

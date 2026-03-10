@@ -87,8 +87,7 @@ class TableSummaryRepresentation(BaseRepresentation):
             if first_line_commas > 0:
                 # Check if other lines have similar comma count
                 matching = sum(
-                    1 for line in lines[1:3]
-                    if abs(line.count(",") - first_line_commas) <= 1
+                    1 for line in lines[1:3] if abs(line.count(",") - first_line_commas) <= 1
                 )
                 return matching >= 1
 

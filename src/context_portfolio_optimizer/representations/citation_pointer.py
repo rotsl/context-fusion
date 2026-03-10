@@ -69,7 +69,7 @@ class CitationPointerRepresentation(BaseRepresentation):
             return first_line
 
         # Truncate at word boundary
-        truncated = first_line[:max_length - 3]
+        truncated = first_line[: max_length - 3]
         last_space = truncated.rfind(" ")
         if last_space > max_length // 2:
             truncated = truncated[:last_space]

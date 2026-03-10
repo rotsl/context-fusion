@@ -103,7 +103,7 @@ class KnapsackOptimizer:
         for item in items:
             if item.tokens <= remaining_budget:
                 new_risk = total_risk + item.risk
-                if new_risk <= risk_tolerance * len(selected + 1):
+                if new_risk <= risk_tolerance * (len(selected) + 1):
                     selected.append(item)
                     remaining_budget -= item.tokens
                     total_risk = new_risk

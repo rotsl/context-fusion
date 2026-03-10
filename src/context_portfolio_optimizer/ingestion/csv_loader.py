@@ -46,16 +46,18 @@ class CSVLoader(BaseLoader):
             summary = f"Table with {len(df)} rows and {len(df.columns)} columns. "
             summary += f"Columns: {', '.join(df.columns)}"
 
-            segments.append(RawSegment(
-                text=summary,
-                metadata={
-                    "is_summary": True,
-                    "row_count": len(df),
-                    "column_count": len(df.columns),
-                    "columns": list(df.columns),
-                },
-                source_path=file_path,
-            ))
+            segments.append(
+                RawSegment(
+                    text=summary,
+                    metadata={
+                        "is_summary": True,
+                        "row_count": len(df),
+                        "column_count": len(df.columns),
+                        "columns": list(df.columns),
+                    },
+                    source_path=file_path,
+                )
+            )
 
             # Create segment for each row
             for idx, row in df.iterrows():
@@ -71,10 +73,12 @@ class CSVLoader(BaseLoader):
         except Exception as e:
             # Fallback: read as text
             text = self._read_text(file_path)
-            segments.append(RawSegment(
-                text=text,
-                source_path=file_path,
-                metadata={"parse_error": str(e)},
-            ))
+            segments.append(
+                RawSegment(
+                    text=text,
+                    source_path=file_path,
+                    metadata={"parse_error": str(e)},
+                )
+            )
 
         return segments

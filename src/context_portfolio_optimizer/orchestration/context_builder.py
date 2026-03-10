@@ -79,7 +79,9 @@ class ContextBuilder:
                 {
                     "id": b.id,
                     "source_type": b.source_type.name,
-                    "representation": portfolio.representations_used.get(b.id, RepresentationType.FULL_TEXT).value,
+                    "representation": portfolio.representations_used.get(
+                        b.id, RepresentationType.FULL_TEXT
+                    ).value,
                     "tokens": b.token_count,
                 }
                 for b in portfolio.blocks
@@ -109,6 +111,7 @@ class ContextBuilder:
 
         if block.file_path:
             from pathlib import Path
+
             parts.append(f"Source: {Path(block.file_path).name}")
 
         if block.page:

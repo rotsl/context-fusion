@@ -97,40 +97,46 @@ class CodeLoader(BaseLoader):
                 # Extract functions and classes
                 for node in root_node.children:
                     if node.type in ("function_definition", "function_declaration"):
-                        segment_text = text[node.start_byte:node.end_byte]
+                        segment_text = text[node.start_byte : node.end_byte]
                         name = self._extract_node_name(node, text)
-                        segments.append(RawSegment(
-                            text=segment_text,
-                            metadata={
-                                "type": "function",
-                                "name": name,
-                                "language": language,
-                            },
-                            source_path=file_path,
-                            language=language,
-                        ))
+                        segments.append(
+                            RawSegment(
+                                text=segment_text,
+                                metadata={
+                                    "type": "function",
+                                    "name": name,
+                                    "language": language,
+                                },
+                                source_path=file_path,
+                                language=language,
+                            )
+                        )
                     elif node.type in ("class_definition", "class_declaration"):
-                        segment_text = text[node.start_byte:node.end_byte]
+                        segment_text = text[node.start_byte : node.end_byte]
                         name = self._extract_node_name(node, text)
-                        segments.append(RawSegment(
-                            text=segment_text,
-                            metadata={
-                                "type": "class",
-                                "name": name,
-                                "language": language,
-                            },
-                            source_path=file_path,
-                            language=language,
-                        ))
+                        segments.append(
+                            RawSegment(
+                                text=segment_text,
+                                metadata={
+                                    "type": "class",
+                                    "name": name,
+                                    "language": language,
+                                },
+                                source_path=file_path,
+                                language=language,
+                            )
+                        )
 
                 # If no segments found, add entire file
                 if not segments:
-                    segments.append(RawSegment(
-                        text=text,
-                        metadata={"type": "file", "language": language},
-                        source_path=file_path,
-                        language=language,
-                    ))
+                    segments.append(
+                        RawSegment(
+                            text=text,
+                            metadata={"type": "file", "language": language},
+                            source_path=file_path,
+                            language=language,
+                        )
+                    )
             else:
                 # Fallback to regex
                 return self._parse_with_regex(file_path, text, language)
@@ -171,7 +177,7 @@ class CodeLoader(BaseLoader):
         """Extract name from a node."""
         for child in node.children:
             if "identifier" in child.type or child.type == "name":
-                return text[child.start_byte:child.end_byte]
+                return text[child.start_byte : child.end_byte]
         return "unknown"
 
     def _parse_with_regex(
@@ -188,62 +194,70 @@ class CodeLoader(BaseLoader):
         docstrings = re.findall(docstring_pattern, text)
 
         for i, docstring in enumerate(docstrings):
-            segments.append(RawSegment(
-                text=docstring,
-                metadata={
-                    "type": "docstring",
-                    "index": i,
-                    "language": language,
-                },
-                source_path=file_path,
-                language=language,
-            ))
-
-        # Extract imports
-        import_patterns = [
-            r'^(import\s+.+)$',
-            r'^(from\s+\S+\s+import\s+.+)$',
-            r'^(require\s*\(.+\))$',
-            r'^(const\s+.+\s+=\s+require\s*\(.+\))$',
-            r'^(#include\s+.+)$',
-        ]
-
-        for pattern in import_patterns:
-            for match in re.finditer(pattern, text, re.MULTILINE):
-                segments.append(RawSegment(
-                    text=match.group(1),
-                    metadata={"type": "import", "language": language},
-                    source_path=file_path,
-                    language=language,
-                ))
-
-        # Extract function signatures
-        func_patterns = [
-            r'^(def\s+(\w+)\s*\([^)]*\).*:)$',
-            r'^(function\s+(\w+)\s*\([^)]*\).*)$',
-            r'^((\w+)\s*\([^)]*\)\s*\{[^}]*\})$',
-        ]
-
-        for pattern in func_patterns:
-            for match in re.finditer(pattern, text, re.MULTILINE):
-                segments.append(RawSegment(
-                    text=match.group(1),
+            segments.append(
+                RawSegment(
+                    text=docstring,
                     metadata={
-                        "type": "function_signature",
-                        "name": match.group(2),
+                        "type": "docstring",
+                        "index": i,
                         "language": language,
                     },
                     source_path=file_path,
                     language=language,
-                ))
+                )
+            )
+
+        # Extract imports
+        import_patterns = [
+            r"^(import\s+.+)$",
+            r"^(from\s+\S+\s+import\s+.+)$",
+            r"^(require\s*\(.+\))$",
+            r"^(const\s+.+\s+=\s+require\s*\(.+\))$",
+            r"^(#include\s+.+)$",
+        ]
+
+        for pattern in import_patterns:
+            for match in re.finditer(pattern, text, re.MULTILINE):
+                segments.append(
+                    RawSegment(
+                        text=match.group(1),
+                        metadata={"type": "import", "language": language},
+                        source_path=file_path,
+                        language=language,
+                    )
+                )
+
+        # Extract function signatures
+        func_patterns = [
+            r"^(def\s+(\w+)\s*\([^)]*\).*:)$",
+            r"^(function\s+(\w+)\s*\([^)]*\).*)$",
+            r"^((\w+)\s*\([^)]*\)\s*\{[^}]*\})$",
+        ]
+
+        for pattern in func_patterns:
+            for match in re.finditer(pattern, text, re.MULTILINE):
+                segments.append(
+                    RawSegment(
+                        text=match.group(1),
+                        metadata={
+                            "type": "function_signature",
+                            "name": match.group(2),
+                            "language": language,
+                        },
+                        source_path=file_path,
+                        language=language,
+                    )
+                )
 
         # Add entire file as fallback
         if not segments:
-            segments.append(RawSegment(
-                text=text,
-                metadata={"type": "file", "language": language},
-                source_path=file_path,
-                language=language,
-            ))
+            segments.append(
+                RawSegment(
+                    text=text,
+                    metadata={"type": "file", "language": language},
+                    source_path=file_path,
+                    language=language,
+                )
+            )
 
         return segments

@@ -43,10 +43,7 @@ class MemoryCompactor:
         # Filter by age
         if max_age_days is not None:
             cutoff = datetime.utcnow() - timedelta(days=max_age_days)
-            entries = [
-                e for e in entries
-                if self._parse_timestamp(e.get("timestamp", "")) > cutoff
-            ]
+            entries = [e for e in entries if self._parse_timestamp(e.get("timestamp", "")) > cutoff]
 
         # Remove duplicates based on similarity
         unique_entries = self._remove_duplicates(entries, similarity_threshold)

@@ -59,11 +59,13 @@ class JSONLoader(BaseLoader):
             segments.append(segment)
 
         # Also add full JSON as a segment
-        segments.append(RawSegment(
-            text=json.dumps(data, indent=2),
-            metadata={"is_full_json": True},
-            source_path=file_path,
-        ))
+        segments.append(
+            RawSegment(
+                text=json.dumps(data, indent=2),
+                metadata={"is_full_json": True},
+                source_path=file_path,
+            )
+        )
 
         return segments
 

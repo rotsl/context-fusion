@@ -97,9 +97,7 @@ class AblationRunner:
 
         for rep_type in RepresentationType:
             # Re-select with this representation
-            new_portfolio = self.selector.select_with_representation(
-                portfolio.blocks, rep_type
-            )
+            new_portfolio = self.selector.select_with_representation(portfolio.blocks, rep_type)
 
             reward = self.reward_calc.calculate(new_portfolio)
             tokens = new_portfolio.total_tokens

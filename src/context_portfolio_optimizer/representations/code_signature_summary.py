@@ -144,7 +144,9 @@ class CodeSignatureRepresentation(BaseRepresentation):
                 imports.append(names.strip())
 
         # JavaScript/TypeScript imports
-        js_imports = re.findall(r"import\s+(?:\{([^}]+)\}|(\w+))\s+from\s+['\"]([^'\"]+)['\"]", content)
+        js_imports = re.findall(
+            r"import\s+(?:\{([^}]+)\}|(\w+))\s+from\s+['\"]([^'\"]+)['\"]", content
+        )
         for named, default, source in js_imports:
             if named:
                 imports.append(f"{{{named.strip()}}} from '{source}'")

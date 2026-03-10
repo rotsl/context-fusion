@@ -52,11 +52,15 @@ class MarkdownLoader(BaseLoader):
                 if current_content:
                     content = "\n".join(current_content).strip()
                     if content:
-                        segments.append(RawSegment(
-                            text=f"{current_heading}\n{content}" if current_heading else content,
-                            metadata={"heading": current_heading},
-                            source_path=file_path,
-                        ))
+                        segments.append(
+                            RawSegment(
+                                text=f"{current_heading}\n{content}"
+                                if current_heading
+                                else content,
+                                metadata={"heading": current_heading},
+                                source_path=file_path,
+                            )
+                        )
                 current_heading = part.strip()
                 current_content = []
             else:
@@ -66,17 +70,21 @@ class MarkdownLoader(BaseLoader):
         if current_content:
             content = "\n".join(current_content).strip()
             if content:
-                segments.append(RawSegment(
-                    text=f"{current_heading}\n{content}" if current_heading else content,
-                    metadata={"heading": current_heading},
-                    source_path=file_path,
-                ))
+                segments.append(
+                    RawSegment(
+                        text=f"{current_heading}\n{content}" if current_heading else content,
+                        metadata={"heading": current_heading},
+                        source_path=file_path,
+                    )
+                )
 
         # If no segments were created, treat entire file as one segment
         if not segments and text.strip():
-            segments.append(RawSegment(
-                text=text.strip(),
-                source_path=file_path,
-            ))
+            segments.append(
+                RawSegment(
+                    text=text.strip(),
+                    source_path=file_path,
+                )
+            )
 
         return segments

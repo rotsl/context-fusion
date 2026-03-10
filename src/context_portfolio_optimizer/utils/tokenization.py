@@ -35,7 +35,9 @@ def _get_tiktoken_encoder():
         import tiktoken
 
         return tiktoken.get_encoding(DEFAULT_ENCODING)
-    except ImportError:
+    except Exception:
+        # Fall back to heuristic estimation when tiktoken cannot load
+        # (for example in offline CI environments).
         return None
 
 

@@ -158,6 +158,7 @@ class PipelineRunner:
             for rep_type, content in representations.items():
                 block.representations[rep_type] = content
                 from ..utils.tokenization import count_tokens
+
                 block.representation_tokens[rep_type] = count_tokens(content)
 
         return blocks

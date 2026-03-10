@@ -12,14 +12,16 @@ from rich.logging import RichHandler
 from rich.theme import Theme
 
 # Custom theme for rich output
-CUSTOM_THEME = Theme({
-    "info": "cyan",
-    "warning": "yellow",
-    "error": "red bold",
-    "critical": "red bold reverse",
-    "success": "green",
-    "debug": "dim",
-})
+CUSTOM_THEME = Theme(
+    {
+        "info": "cyan",
+        "warning": "yellow",
+        "error": "red bold",
+        "critical": "red bold reverse",
+        "success": "green",
+        "debug": "dim",
+    }
+)
 
 console = Console(theme=CUSTOM_THEME)
 
@@ -53,9 +55,7 @@ def setup_logging(
         formatter = logging.Formatter("%(message)s")
     else:
         handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     handler.setLevel(level)
     handler.setFormatter(formatter)
@@ -65,9 +65,7 @@ def setup_logging(
         file_handler = logging.FileHandler(log_file)
         file_handler.setLevel(level)
         file_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+            logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         )
         logger.addHandler(file_handler)
 

@@ -125,6 +125,7 @@ class BlockBuilder:
         else:
             # Check if it's code
             from ..constants import CODE_EXTENSIONS
+
             if ext in CODE_EXTENSIONS:
                 return SourceType.CODE
             return SourceType.TEXT  # Default

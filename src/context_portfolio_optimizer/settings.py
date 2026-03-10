@@ -14,6 +14,7 @@ from .constants import (
     DEFAULT_CACHE_DIR,
     DEFAULT_EXAMPLES_BUDGET,
     DEFAULT_INSTRUCTIONS_BUDGET,
+    DEFAULT_MEMORY_DIR,
     DEFAULT_MEMORY_BUDGET,
     DEFAULT_OUTPUT_RESERVE,
     DEFAULT_RETRIEVAL_BUDGET,
@@ -60,25 +61,31 @@ class BudgetSettings:
 class ScoringSettings:
     """Scoring model settings."""
 
-    utility_weights: dict[str, float] = field(default_factory=lambda: {
-        "retrieval": 0.25,
-        "trust": 0.20,
-        "freshness": 0.15,
-        "structure": 0.15,
-        "diversity": 0.15,
-        "token_cost": -0.10,
-    })
-    risk_weights: dict[str, float] = field(default_factory=lambda: {
-        "hallucination_proxy": 0.40,
-        "staleness": 0.35,
-        "privacy": 0.25,
-    })
-    reward_weights: dict[str, float] = field(default_factory=lambda: {
-        "alpha": 1.0,
-        "beta": 0.1,
-        "gamma": 0.01,
-        "delta": 0.5,
-    })
+    utility_weights: dict[str, float] = field(
+        default_factory=lambda: {
+            "retrieval": 0.25,
+            "trust": 0.20,
+            "freshness": 0.15,
+            "structure": 0.15,
+            "diversity": 0.15,
+            "token_cost": -0.10,
+        }
+    )
+    risk_weights: dict[str, float] = field(
+        default_factory=lambda: {
+            "hallucination_proxy": 0.40,
+            "staleness": 0.35,
+            "privacy": 0.25,
+        }
+    )
+    reward_weights: dict[str, float] = field(
+        default_factory=lambda: {
+            "alpha": 1.0,
+            "beta": 0.1,
+            "gamma": 0.01,
+            "delta": 0.5,
+        }
+    )
 
 
 @dataclass

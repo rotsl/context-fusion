@@ -100,10 +100,12 @@ class PDFLoader(BaseLoader):
             try:
                 text = extract_text(file_path)
                 if text.strip():
-                    segments.append(RawSegment(
-                        text=text.strip(),
-                        source_path=file_path,
-                    ))
+                    segments.append(
+                        RawSegment(
+                            text=text.strip(),
+                            source_path=file_path,
+                        )
+                    )
             except Exception as e2:
                 logger.error(f"Fallback PDF extraction failed: {e2}")
 

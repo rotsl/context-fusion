@@ -10,6 +10,8 @@ import pytest
 
 from context_portfolio_optimizer.orchestration.runner import PipelineRunner
 
+pytestmark = pytest.mark.integration
+
 
 class TestPipeline:
     """Integration tests for the full pipeline."""

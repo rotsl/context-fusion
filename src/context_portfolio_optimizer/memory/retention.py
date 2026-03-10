@@ -47,10 +47,7 @@ class RetentionPolicy:
         # Apply age filter
         if self.max_age_days is not None:
             cutoff = datetime.utcnow() - timedelta(days=self.max_age_days)
-            entries = [
-                e for e in entries
-                if self._parse_timestamp(e.get("timestamp", "")) > cutoff
-            ]
+            entries = [e for e in entries if self._parse_timestamp(e.get("timestamp", "")) > cutoff]
 
         # Sort by importance (for now, just by recency)
         entries.sort(
@@ -60,7 +57,7 @@ class RetentionPolicy:
 
         # Apply entry limit
         if self.max_entries is not None and len(entries) > self.max_entries:
-            entries = entries[:self.max_entries]
+            entries = entries[: self.max_entries]
 
         # Compact store
         store.compact(entries)

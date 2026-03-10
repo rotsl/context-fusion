@@ -69,6 +69,11 @@ class BudgetManager:
             output_reserve=int(DEFAULT_OUTPUT_RESERVE * ratio),
         )
 
+        # Keep exact total by assigning rounding remainder to output reserve.
+        remainder = total_tokens - allocation.total
+        if remainder:
+            allocation.output_reserve += remainder
+
         return cls(allocation)
 
     def get_available_for_category(self, category: str) -> int:
