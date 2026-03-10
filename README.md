@@ -419,6 +419,11 @@ Notes:
 
 The server auto-stops when browser clients disconnect (port is released automatically).
 
+Public GitHub Pages GUI:
+- The workflow `.github/workflows/gui-public.yml` deploys `web/pages/index.html` to GitHub Pages.
+- This public page asks users to enter their own API key directly in the GUI form (key is not stored by the page).
+- It runs a browser-side CF-lite context selection flow for pasted text input.
+
 You can also use:
 
 ```bash

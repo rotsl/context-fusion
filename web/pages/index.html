@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ContextFusion Public GUI</title>
+  <style>
+    :root {
+      --bg: #071321;
+      --panel: #0d2238;
+      --line: #204262;
+      --text: #e9f1fb;
+      --muted: #9db4cf;
+      --accent: #22c55e;
+      --accent-2: #38bdf8;
+      --danger: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at -10% -30%, #1a4d80 0%, transparent 50%),
+        radial-gradient(900px 500px at 110% -20%, #0d5f60 0%, transparent 45%),
+        linear-gradient(180deg, #0a1a2d 0%, var(--bg) 100%);
+      min-height: 100vh;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px 16px 32px;
+    }
+    h1 { margin: 0 0 6px; }
+    p { margin: 0 0 10px; color: var(--muted); }
+    .panel {
+      background: linear-gradient(180deg, rgba(13, 34, 56, 0.95), rgba(9, 24, 39, 0.95));
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 800px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      color: #c8d8ec;
+      font-size: 0.92rem;
+    }
+    input, select, textarea, button {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #061120;
+      color: var(--text);
+      padding: 10px 11px;
+      font-size: 0.95rem;
+    }
+    textarea { min-height: 180px; resize: vertical; }
+    button {
+      cursor: pointer;
+      border: none;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      color: #042013;
+      font-weight: 700;
+      margin-top: 8px;
+    }
+    .tiny {
+      font-size: 0.84rem;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.35;
+    }
+    .status {
+      margin-top: 10px;
+      min-height: 20px;
+      color: var(--muted);
+    }
+    .status.error { color: var(--danger); }
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 420px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #050f1d;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>ContextFusion Public GUI</h1>
+    <p>GitHub Pages build. Enter your API key directly in this UI to run model responses from browser.</p>
+    <p class="tiny">
+      Your key is used only for this browser request and is never stored in this page.
+      Do not use high-privilege production keys.
+    </p>
+    <p class="tiny">
+      If a provider rejects browser-origin requests (CORS), run the local server GUI with
+      <code>cpo ui --host &lt;host&gt; --port 8080</code> instead.
+    </p>
+
+    <div class="panel">
+      <div class="grid">
+        <div>
+          <label for="provider">Provider</label>
+          <select id="provider">
+            <option value="anthropic" selected>Anthropic (Claude)</option>
+            <option value="openai">OpenAI</option>
+            <option value="openai_compatible">OpenAI-Compatible</option>
+          </select>
+        </div>
+        <div>
+          <label for="model">Model</label>
+          <input id="model" type="text" value="claude-sonnet-4-6">
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 10px;">
+        <div>
+          <label for="api-key">API Key (required)</label>
+          <input id="api-key" type="password" placeholder="sk-...">
+        </div>
+        <div>
+          <label for="base-url">Base URL (OpenAI-Compatible only)</label>
+          <input id="base-url" type="text" placeholder="https://api.example.com/v1">
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 10px;">
+        <div>
+          <label for="budget">CF-lite Token Budget (approx)</label>
+          <input id="budget" type="number" min="1" value="1200">
+        </div>
+        <div>
+          <label for="temperature">Temperature</label>
+          <input id="temperature" type="number" min="0" max="2" step="0.1" value="0">
+        </div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <label for="query">Query / Task</label>
+        <input id="query" type="text" placeholder="Summarize the strongest evidence">
+      </div>
+
+      <div style="margin-top: 10px;">
+        <label for="context">Input Context (paste text/doc excerpts)</label>
+        <textarea id="context" placeholder="Paste text sources here. CF-lite will deduplicate and select budget-fit blocks."></textarea>
+        <div class="tiny">This public page cannot read local files; paste your text here.</div>
+      </div>
+
+      <button id="run-btn">Run ContextFusion Public GUI</button>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="panel">
+      <label>Selected Context (CF-lite)</label>
+      <pre id="selected"></pre>
+    </div>
+
+    <div class="panel">
+      <label>Model Answer</label>
+      <pre id="answer"></pre>
+    </div>
+  </div>
+
+  <script>
+    const defaultModelByProvider = {
+      anthropic: "claude-sonnet-4-6",
+      openai: "gpt-5-mini",
+      openai_compatible: "gpt-4o-mini"
+    };
+
+    function setStatus(message, isError = false) {
+      const el = document.getElementById("status");
+      el.textContent = message || "";
+      el.className = isError ? "status error" : "status";
+    }
+
+    function approxTokens(text) {
+      const parts = (text || "").trim().split(/\s+/).filter(Boolean);
+      return parts.length;
+    }
+
+    function dedupAndSplit(raw) {
+      const chunks = raw
+        .split(/\n\s*\n|\r\n\s*\r\n/g)
+        .map((x) => x.trim())
+        .filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for (const chunk of chunks) {
+        const key = chunk.toLowerCase().replace(/\s+/g, " ").trim();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        out.push(chunk);
+      }
+      return out;
+    }
+
+    function scoreChunk(chunk, queryTerms) {
+      const lower = chunk.toLowerCase();
+      let hit = 0;
+      for (const term of queryTerms) {
+        if (lower.includes(term)) hit += 1;
+      }
+      const tokenPenalty = Math.min(0.25, approxTokens(chunk) / 2500);
+      return hit - tokenPenalty;
+    }
+
+    function selectContext(rawContext, query, budget) {
+      const chunks = dedupAndSplit(rawContext);
+      const queryTerms = (query || "")
+        .toLowerCase()
+        .split(/[^a-z0-9]+/)
+        .filter((w) => w.length >= 3);
+
+      const scored = chunks.map((chunk) => ({
+        text: chunk,
+        tokens: approxTokens(chunk),
+        score: scoreChunk(chunk, queryTerms),
+      }));
+
+      scored.sort((a, b) => b.score - a.score || a.tokens - b.tokens);
+
+      const selected = [];
+      let used = 0;
+      for (const item of scored) {
+        if (used + item.tokens > budget) continue;
+        selected.push(item);
+        used += item.tokens;
+      }
+
+      if (!selected.length && scored.length) {
+        selected.push(scored[0]);
+        used = scored[0].tokens;
+      }
+
+      return { selected, used };
+    }
+
+    function buildPrompt(query, selectedChunks) {
+      const merged = selectedChunks.map((c, i) => `[${i + 1}] ${c.text}`).join("\n\n");
+      return [
+        "Use only the provided context.",
+        "If context is insufficient, say so explicitly.",
+        "",
+        "Query:",
+        query || "(no query provided)",
+        "",
+        "Context:",
+        merged,
+      ].join("\n");
+    }
+
+    async function callAnthropic(apiKey, model, prompt, temperature) {
+      const resp = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: 512,
+          temperature,
+          messages: [{ role: "user", content: prompt }],
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data?.error?.message || `Anthropic error (${resp.status})`);
+      }
+      const text = Array.isArray(data.content)
+        ? data.content.filter((x) => x?.type === "text").map((x) => x.text).join("\n")
+        : "";
+      return text || "(empty response)";
+    }
+
+    async function callOpenAICompatible(endpoint, apiKey, model, prompt, temperature) {
+      const resp = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          temperature,
+          max_tokens: 512,
+          messages: [
+            { role: "system", content: "You are a concise assistant." },
+            { role: "user", content: prompt },
+          ],
+        }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data?.error?.message || `API error (${resp.status})`);
+      }
+      return data?.choices?.[0]?.message?.content || "(empty response)";
+    }
+
+    async function run() {
+      setStatus("Running...", false);
+      const runBtn = document.getElementById("run-btn");
+      runBtn.disabled = true;
+      try {
+        const provider = document.getElementById("provider").value;
+        const apiKey = document.getElementById("api-key").value.trim();
+        const model = document.getElementById("model").value.trim() || defaultModelByProvider[provider];
+        const query = document.getElementById("query").value.trim();
+        const rawContext = document.getElementById("context").value;
+        const budget = Number(document.getElementById("budget").value || 1200);
+        const temperature = Number(document.getElementById("temperature").value || 0);
+        const baseUrl = document.getElementById("base-url").value.trim();
+
+        if (!apiKey) throw new Error("API key is required.");
+        if (!rawContext.trim()) throw new Error("Input Context is required.");
+        if (budget <= 0) throw new Error("Budget must be greater than zero.");
+
+        const selected = selectContext(rawContext, query, budget);
+        const selectedText = selected.selected
+          .map((item, i) => `${i + 1}. score=${item.score.toFixed(2)} tokens=${item.tokens}\n${item.text}`)
+          .join("\n\n");
+        document.getElementById("selected").textContent = selectedText || "(no selected content)";
+
+        const prompt = buildPrompt(query, selected.selected);
+        let answer = "";
+        if (provider === "anthropic") {
+          answer = await callAnthropic(apiKey, model, prompt, temperature);
+        } else if (provider === "openai") {
+          answer = await callOpenAICompatible(
+            "https://api.openai.com/v1/chat/completions",
+            apiKey,
+            model,
+            prompt,
+            temperature,
+          );
+        } else {
+          if (!baseUrl) {
+            throw new Error("Base URL is required for OpenAI-Compatible provider.");
+          }
+          const endpoint = `${baseUrl.replace(/\/+$/, "")}/chat/completions`;
+          answer = await callOpenAICompatible(endpoint, apiKey, model, prompt, temperature);
+        }
+
+        document.getElementById("answer").textContent = answer;
+        setStatus(`Done. Selected approx tokens: ${selected.used}`, false);
+      } catch (err) {
+        setStatus(err.message || String(err), true);
+        document.getElementById("answer").textContent = "";
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    document.getElementById("provider").addEventListener("change", (e) => {
+      const provider = e.target.value;
+      document.getElementById("model").value = defaultModelByProvider[provider] || "";
+    });
+    document.getElementById("run-btn").addEventListener("click", run);
+  </script>
+</body>
+</html>

@@ -1,157 +1,52 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2025-2026 Rohan R @rotsl
 
-name: GUI Public Run
+name: Deploy Public GUI to GitHub Pages
 
 on:
   workflow_dispatch:
-    inputs:
-      anthropic_api_key:
-        description: "Anthropic API key (required for this workflow run)"
-        required: true
-        type: string
-      model:
-        description: "Claude model name"
-        required: false
-        default: "claude-sonnet-4-6"
-        type: string
-      task_type:
-        description: "ContextFusion task mode"
-        required: false
-        default: "chat"
-        type: choice
-        options:
-          - chat
-          - qa
-          - code
-          - agent
-      query:
-        description: "Query/task sent through GUI"
-        required: false
-        default: "Summarize repository placeholder input"
-        type: string
-      input_path:
-        description: "Directory or file path in repository"
-        required: false
-        default: "examples/gui_input"
-        type: string
-      budget:
-        description: "ContextFusion budget"
-        required: false
-        default: "3000"
-        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - "web/pages/**"
+      - ".github/workflows/gui-public.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
 
 jobs:
-  run-gui-flow:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Verify Pages GUI files
+        run: |
+          test -f web/pages/index.html
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          python-version: "3.11"
+          path: web/pages
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y tesseract-ocr libtesseract-dev
-
-      - name: Install Python dependencies
-        run: |
-          pip install -e ".[all,dev]"
-
-      - name: Set API key
-        env:
-          KEY_VALUE: ${{ github.event.inputs.anthropic_api_key }}
-        run: |
-          if [ -z "$KEY_VALUE" ]; then
-            echo "anthropic_api_key input is required" >&2
-            exit 1
-          fi
-          echo "::add-mask::$KEY_VALUE"
-          echo "ANTHROPIC_API_KEY=$KEY_VALUE" >> "$GITHUB_ENV"
-
-      - name: Start GUI server
-        run: |
-          cpo ui --host localhost --port 8080 > gui_workflow.log 2>&1 &
-          echo $! > gui_workflow.pid
-
-      - name: Wait for GUI health
-        run: |
-          for i in $(seq 1 45); do
-            if curl -fsS http://localhost:8080/api/health > /dev/null; then
-              echo "GUI is ready"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "GUI did not become healthy in time" >&2
-          exit 1
-
-      - name: Run GUI API flow (CF + Claude)
-        env:
-          GUI_TASK_TYPE: ${{ github.event.inputs.task_type }}
-          GUI_QUERY: ${{ github.event.inputs.query }}
-          GUI_MODEL: ${{ github.event.inputs.model }}
-          GUI_INPUT_PATH: ${{ github.event.inputs.input_path }}
-          GUI_BUDGET: ${{ github.event.inputs.budget }}
-        run: |
-          python - << 'PY'
-          import json
-          import os
-          import urllib.request
-
-          payload = {
-              "mode": "directory",
-              "directory": os.environ.get("GUI_INPUT_PATH", "examples/gui_input"),
-              "budget": int(os.environ.get("GUI_BUDGET", "3000")),
-              "task_type": os.environ.get("GUI_TASK_TYPE", "chat"),
-              "query": os.environ.get("GUI_QUERY", ""),
-              "provider": "anthropic",
-              "model": os.environ.get("GUI_MODEL", "claude-sonnet-4-6"),
-              "call_model": True,
-              "max_answer_tokens": 256,
-              "temperature": 0.0,
-          }
-          req = urllib.request.Request(
-              "http://localhost:8080/api/run",
-              data=json.dumps(payload).encode("utf-8"),
-              headers={"Content-Type": "application/json"},
-              method="POST",
-          )
-          with urllib.request.urlopen(req, timeout=300) as response:
-              body = response.read().decode("utf-8")
-          data = json.loads(body)
-
-          summary = {
-              "files_ingested": data.get("stats", {}).get("files_ingested"),
-              "blocks_selected": data.get("stats", {}).get("blocks_selected"),
-              "provider": data.get("model_info", {}).get("provider"),
-              "model": data.get("model_info", {}).get("model"),
-              "model_error": data.get("model_error"),
-              "answer_preview": (data.get("model_answer", "") or "")[:220],
-          }
-          print(json.dumps(summary, indent=2))
-
-          if data.get("model_error"):
-              raise SystemExit(f"Model call failed: {data['model_error']}")
-          if not data.get("selected_blocks"):
-              raise SystemExit("No selected blocks returned by GUI CF pipeline")
-          if not data.get("model_answer"):
-              raise SystemExit("No model_answer returned from GUI flow")
-          PY
-
-      - name: Show GUI logs
-        if: always()
-        run: |
-          echo "---- gui_workflow.log ----"
-          cat gui_workflow.log || true
-
-      - name: Stop GUI server
-        if: always()
-        run: |
-          if [ -f gui_workflow.pid ]; then
-            kill "$(cat gui_workflow.pid)" 2>/dev/null || true
-          fi
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
