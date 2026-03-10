@@ -122,7 +122,7 @@ HTML_PAGE = """<!doctype html>
 
       <div id="dir-input-wrap" style="margin-top: 10px;">
         <label for="directory">Directory Path</label>
-        <input id="directory" type="text" placeholder="/path/to/data">
+        <input id="directory" type="text" placeholder="./examples/gui_input">
       </div>
       <div id="files-input-wrap" style="display:none; margin-top: 10px;">
         <label for="files">File Paths (one per line)</label>

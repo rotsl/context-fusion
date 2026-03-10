@@ -273,7 +273,7 @@ Then open `http://<host>:8080` in your browser and follow these exact steps:
    - `File list` to process explicit files
 2. Set `Budget` (token budget).
 3. Provide input path(s):
-   - `Directory Path` (example: `./docs`)
+   - `Directory Path` (example: `./examples/gui_input`)
    - or `File Paths` (one file per line)
 4. Click `Run Pipeline`.
 5. Review `Run Stats`, `Representation Usage`, `Selected Source Types`, and `Context Preview`.
