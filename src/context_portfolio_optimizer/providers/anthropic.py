@@ -55,9 +55,11 @@ class AnthropicProvider(BaseAdapter):
         model: str,
         **kwargs: Any,
     ) -> dict[str, Any]:
+        system_prompt, chat_messages = _anthropic_message_payload(messages)
         response = self.client.messages.create(
             model=model,
-            messages=messages,
+            messages=chat_messages,
+            system=system_prompt,
             **kwargs,
         )
         content = []
@@ -78,9 +80,11 @@ class AnthropicProvider(BaseAdapter):
         tools: list[dict[str, Any]],
         model: str,
     ) -> dict[str, Any]:
+        system_prompt, chat_messages = _anthropic_message_payload(messages)
         response = self.client.messages.create(
             model=model,
-            messages=messages,
+            messages=chat_messages,
+            system=system_prompt,
             tools=tools,
         )
         content = []
@@ -106,3 +110,26 @@ class AnthropicProvider(BaseAdapter):
             "tool_calls": tool_calls,
             "raw": response,
         }
+
+
+def _anthropic_message_payload(
+    messages: list[dict[str, Any]],
+) -> tuple[str | None, list[dict[str, Any]]]:
+    """Convert OpenAI-style system messages to Anthropic payload format."""
+    system_parts: list[str] = []
+    normalized: list[dict[str, Any]] = []
+
+    for message in messages:
+        role = str(message.get("role", "user")).strip().lower()
+        content = str(message.get("content", ""))
+        if role == "system":
+            if content:
+                system_parts.append(content)
+            continue
+        normalized.append({"role": role if role in {"user", "assistant"} else "user", "content": content})
+
+    if not normalized:
+        normalized = [{"role": "user", "content": "Use the provided context and answer the task."}]
+
+    system_prompt = "\n\n".join(system_parts) if system_parts else None
+    return system_prompt, normalized

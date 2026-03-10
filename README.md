@@ -358,7 +358,9 @@ The UI is a local browser app to run the pipeline and inspect:
 - run stats (`files_ingested`, `blocks_selected`, `total_tokens`, etc.)
 - representation usage
 - selected source types
+- selected CF blocks (source, representation, score, token estimate)
 - context preview
+- model answer (optional CF -> provider/model call)
 
 Run the built-in local UI:
 
@@ -371,13 +373,26 @@ Then open `http://<host>:8080` in your browser and follow these exact steps:
 1. Choose `Input Mode`:
    - `Directory` to process a folder
    - `File list` to process explicit files
-2. Set `Budget` (token budget).
-3. Provide input path(s):
-   - `Directory Path` (example: `./examples/gui_input`)
+2. Choose `Task Mode` (`chat`, `qa`, `code`, `agent`) and enter `Query / Task`.
+3. Set `Budget` (token budget).
+4. Provide input path(s):
+   - `Directory Path` accepts folder or single file (relative or absolute path), example:
+     - `./examples/gui_input`
+     - `./examples/gui_input/random.csv`
+     - `/absolute/path/to/your/data`
    - or `File Paths` (one file per line)
    - repository placeholder file for quick UI checks: `./examples/gui_input/REPO_TRACE_PLACEHOLDER.md`
-4. Click `Run Pipeline`.
-5. Review `Run Stats`, `Representation Usage`, `Selected Source Types`, and `Context Preview`.
+5. Pick `Provider` and `Model`.
+   - For this repo default, use `Provider = anthropic`, `Model = claude-sonnet-4-6`
+   - Keep `Call model after CF pipeline` enabled to run CF as middleware between query and model.
+6. Click `Run Pipeline`.
+7. Review `Run Stats`, `Representation Usage`, `Selected Source Types`, `Selected Blocks`, `Context Preview`, and `Model Answer`.
+
+Notes:
+- Set your keys in `.env` (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, etc.) before using model-call mode.
+- For image inputs, OCR extraction may return `[Image: No text detected]`; model answers will reflect available extracted context.
+
+The server auto-stops when browser clients disconnect (port is released automatically).
 
 You can also use:
 

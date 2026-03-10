@@ -31,12 +31,13 @@ Then open:
 
 ## 3. UI Layout
 
-The page has four main sections:
+The page has five main sections:
 
 1. **Run Panel**
 2. **Run Stats**
 3. **Representation Usage / Selected Source Types**
-4. **Context Preview**
+4. **Selected Blocks + Context Preview**
+5. **Model Answer (CF as middleware)**
 
 ## 4. Run Panel Inputs
 
@@ -50,10 +51,40 @@ The page has four main sections:
 - Token budget for retrieval/context selection.
 - Must be greater than `0`.
 
+### Task Mode
+
+- Choose `chat`, `qa`, `code`, or `agent`.
+- This is forwarded to the ContextFusion pipeline so the UI run uses the matching mode.
+
+### Query / Task
+
+- Optional query string to drive two-stage retrieval and scoring.
+- Example: `Summarize differences between README and GUI placeholder content`.
+
+### Provider / Model / Model Call
+
+- `Provider`: `anthropic`, `openai`, `ollama`, or compatible aliases.
+- `Model`: target model name for selected provider.
+- `Call model after CF pipeline`: if enabled, UI runs:
+  1. CF pipeline for context selection
+  2. provider/model call using selected context packet
+  3. model answer rendering in UI
+- For this repo’s default API setup, use:
+  - `Provider = anthropic`
+  - `Model = claude-sonnet-4-6`
+
+### Max Answer Tokens / Temperature
+
+- Controls provider response length and randomness for model-call mode.
+
 ### Directory Path (Directory mode)
 
 - Absolute or relative path.
-- Example: `./docs`
+- Accepts both directories and single files.
+- Examples:
+  - `./docs`
+  - `./examples/gui_input/random.csv`
+  - `/absolute/path/to/your/data`
 
 ### File Paths (File list mode)
 
@@ -65,14 +96,18 @@ The page has four main sections:
 ### Example A: Directory mode
 
 1. Select `Input Mode = Directory`.
-2. Set `Budget = 3000`.
-3. Set `Directory Path = ./docs`.
-4. Click `Run Pipeline`.
+2. Set `Task Mode = qa`.
+3. Set `Query / Task = Summarize key facts from these files`.
+4. Set `Directory Path = ./examples/gui_input`.
+5. Set `Provider = anthropic`, `Model = claude-sonnet-4-6`.
+6. Keep `Call model after CF pipeline` enabled.
+7. Click `Run Pipeline`.
 
 ### Example B: File list mode
 
 1. Select `Input Mode = File list`.
-2. Set `Budget = 1200`.
+2. Set `Task Mode = chat`.
+3. Set `Budget = 1200`.
 3. Enter paths, one per line, for example:
 
 ```text
@@ -81,7 +116,8 @@ The page has four main sections:
 ./docs/algorithm.md
 ```
 
-4. Click `Run Pipeline`.
+4. Set provider/model if you want model answer.
+5. Click `Run Pipeline`.
 
 ## 6. Understanding the Output
 
@@ -105,6 +141,20 @@ Distribution of selected block source types (for example `TEXT`, `DOCUMENT`, `CO
 
 Shows the assembled context string (truncated preview).
 
+### Selected Blocks (Actual CF Output)
+
+Shows the selected ContextFusion blocks with:
+- source URI
+- representation type
+- token estimate
+- score
+
+### Model Answer (CF as Middleware)
+
+- Shows the provider/model response after CF compilation.
+- Includes provider, model, task mode, and input message count metadata.
+- If `Call model after CF pipeline` is disabled, this panel notes model call was skipped.
+
 ## 7. API Behavior (for debugging)
 
 - `GET /` returns the UI page.
@@ -116,7 +166,14 @@ Shows the assembled context string (truncated preview).
 {
   "mode": "directory",
   "budget": 3000,
-  "directory": "./docs"
+  "directory": "./docs",
+  "task_type": "qa",
+  "query": "Summarize this content",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "call_model": true,
+  "max_answer_tokens": 256,
+  "temperature": 0
 }
 ```
 
@@ -126,7 +183,12 @@ Or:
 {
   "mode": "files",
   "budget": 1200,
-  "file_paths": ["./README.md", "./docs/cli.md"]
+  "file_paths": ["./README.md", "./docs/cli.md"],
+  "task_type": "chat",
+  "query": "Give me a short summary",
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "call_model": true
 }
 ```
 
@@ -136,6 +198,10 @@ Or:
 
 You selected `Directory` mode but did not provide a directory.
 
+### `directory path does not exist`
+
+The supplied directory/file path does not exist on the machine where GUI server is running.
+
 ### `at least one file path is required`
 
 You selected `File list` mode but did not provide any valid path lines.
@@ -143,6 +209,13 @@ You selected `File list` mode but did not provide any valid path lines.
 ### `budget must be greater than zero`
 
 Set budget to a positive integer.
+
+### Model call failed
+
+Common causes:
+- missing API key (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, etc.)
+- invalid model name for selected provider
+- provider service unavailable (for `ollama`, check local server is running)
 
 ### Port already in use
 
@@ -168,4 +241,6 @@ Then open:
 
 ## 10. Stop the GUI
 
-Press `Ctrl+C` in the terminal where the server is running.
+Close browser tabs/windows using the UI and the server will auto-stop.
+
+You can also still stop manually with `Ctrl+C` in the terminal where the server is running.
