@@ -35,6 +35,17 @@ jobs:
         run: |
           test -f web/pages/index.html
 
+      - name: Validate public GUI contract
+        run: |
+          grep -q 'id="api-key"' web/pages/index.html
+          grep -q 'id="run-btn"' web/pages/index.html
+          grep -q 'id="stats-cards"' web/pages/index.html
+          grep -q 'id="rep-bars"' web/pages/index.html
+          grep -q 'id="source-bars"' web/pages/index.html
+          grep -q 'id="selected-blocks"' web/pages/index.html
+          grep -q 'id="context-preview"' web/pages/index.html
+          grep -q 'id="model-answer"' web/pages/index.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -29,6 +29,42 @@ Then open:
 
 `http://<host>:8080`
 
+### Local GUI on Port 8080 (exact commands)
+
+From repository root:
+
+```bash
+cpo ui --host 0.0.0.0 --port 8080
+```
+
+In another terminal, verify health:
+
+```bash
+curl -fsS http://localhost:8080/api/health
+```
+
+Open in browser:
+
+`http://localhost:8080`
+
+Stop local GUI:
+
+- close browser tabs/windows (auto-stop behavior), or
+- press `Ctrl+C` in the terminal running `cpo ui`.
+
+### GitHub Pages Public GUI (same layout)
+
+The workflow `.github/workflows/gui-public.yml` deploys a public GUI page under `web/pages/index.html`.
+
+- It mirrors the same section layout used by local GUI:
+  1. Run Panel
+  2. Run Stats
+  3. Representation Usage / Selected Source Types
+  4. Selected Blocks + Context Preview
+  5. Model Answer
+- The public GUI asks users to enter API key directly in the form.
+- Because GitHub Pages is static, file input is done via browser file/folder picker (not local path strings).
+
 ## 3. UI Layout
 
 The page has five main sections:

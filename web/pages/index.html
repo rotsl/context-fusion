@@ -4,143 +4,230 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>ContextFusion Public GUI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #071321;
-      --panel: #0d2238;
-      --line: #204262;
-      --text: #e9f1fb;
-      --muted: #9db4cf;
-      --accent: #22c55e;
+      --bg: #061322;
+      --bg-soft: #0a1b2e;
+      --panel: rgba(10, 24, 40, 0.82);
+      --card: rgba(23, 39, 62, 0.95);
+      --text: #e8eef7;
+      --muted: #9ab0cc;
+      --accent: #2dd4bf;
       --accent-2: #38bdf8;
+      --line: #2b405d;
       --danger: #f87171;
+      --success: #34d399;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: var(--text);
+      font-family: "Space Grotesk", -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
       background:
-        radial-gradient(1200px 600px at -10% -30%, #1a4d80 0%, transparent 50%),
-        radial-gradient(900px 500px at 110% -20%, #0d5f60 0%, transparent 45%),
-        linear-gradient(180deg, #0a1a2d 0%, var(--bg) 100%);
+        radial-gradient(1300px 700px at -10% -30%, #15426f 0%, transparent 55%),
+        radial-gradient(1100px 600px at 110% -20%, #0d5f60 0%, transparent 45%),
+        linear-gradient(180deg, var(--bg-soft) 0%, var(--bg) 100%);
+      color: var(--text);
       min-height: 100vh;
     }
-    .wrap {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 24px 16px 32px;
+    .container { max-width: 1180px; margin: 0 auto; padding: 28px 20px 32px; }
+    h1 { margin: 0 0 6px; font-size: 2rem; letter-spacing: 0.2px; }
+    .sub { color: var(--muted); margin-bottom: 12px; font-size: 0.96rem; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .chip {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      color: #cde0f7;
+      background: rgba(7, 18, 31, 0.55);
     }
-    h1 { margin: 0 0 6px; }
-    p { margin: 0 0 10px; color: var(--muted); }
     .panel {
-      background: linear-gradient(180deg, rgba(13, 34, 56, 0.95), rgba(9, 24, 39, 0.95));
+      background: linear-gradient(165deg, var(--panel), rgba(7, 17, 30, 0.9));
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 16px;
-      margin-top: 14px;
+      border-radius: 16px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 18px 40px rgba(2, 8, 20, 0.45);
+      backdrop-filter: blur(6px);
     }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px;
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 900px) {
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
     }
-    @media (max-width: 800px) {
-      .grid { grid-template-columns: 1fr; }
-    }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      color: #c8d8ec;
-      font-size: 0.92rem;
-    }
-    input, select, textarea, button {
-      width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #061120;
-      color: var(--text);
-      padding: 10px 11px;
-      font-size: 0.95rem;
-    }
-    textarea { min-height: 180px; resize: vertical; }
-    button {
-      cursor: pointer;
-      border: none;
-      background: linear-gradient(90deg, var(--accent), var(--accent-2));
-      color: #042013;
-      font-weight: 700;
-      margin-top: 8px;
-    }
-    .tiny {
-      font-size: 0.84rem;
+    label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+    .help {
       color: var(--muted);
+      font-size: 0.82rem;
       margin-top: 4px;
       line-height: 1.35;
     }
-    .status {
-      margin-top: 10px;
-      min-height: 20px;
-      color: var(--muted);
+    .help code {
+      color: #cbd5e1;
+      font-family: "IBM Plex Mono", SFMono-Regular, Menlo, monospace;
     }
+    input, select, textarea, button {
+      width: 100%;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      background: #071423;
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    .btn {
+      cursor: pointer;
+      background: linear-gradient(90deg, var(--accent), #22c55e);
+      border: none;
+      color: #03140f;
+      font-weight: 700;
+      box-shadow: 0 10px 22px rgba(45, 212, 191, 0.3);
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(45, 212, 191, 0.4);
+    }
+    .inline-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .inline-check input {
+      width: auto;
+      margin: 0;
+    }
+    .status { margin-top: 8px; min-height: 22px; color: var(--muted); }
     .status.error { color: var(--danger); }
+    .cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+    @media (max-width: 900px) { .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .card .k { color: var(--muted); font-size: 0.8rem; }
+    .card .v {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 2px;
+      color: #d7fff8;
+    }
+    .bars { display: grid; gap: 8px; }
+    .bar-row { display: grid; grid-template-columns: 160px 1fr 56px; gap: 8px; align-items: center; }
+    .bar-track { background: #081323; border: 1px solid var(--line); border-radius: 999px; height: 11px; overflow: hidden; }
+    .bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-2), #38bdf8); }
+    .mono { font-family: "IBM Plex Mono", SFMono-Regular, Menlo, monospace; font-size: 0.86rem; }
     pre {
       margin: 0;
       white-space: pre-wrap;
       word-break: break-word;
-      max-height: 420px;
-      overflow: auto;
+      background: #081426;
       border: 1px solid var(--line);
       border-radius: 10px;
-      background: #050f1d;
       padding: 10px;
+      max-height: 300px;
+      overflow: auto;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="container">
     <h1>ContextFusion Public GUI</h1>
-    <p>GitHub Pages build. Enter your API key directly in this UI to run model responses from browser.</p>
-    <p class="tiny">
-      Your key is used only for this browser request and is never stored in this page.
-      Do not use high-privilege production keys.
-    </p>
-    <p class="tiny">
-      If a provider rejects browser-origin requests (CORS), run the local server GUI with
-      <code>cpo ui --host &lt;host&gt; --port 8080</code> instead.
-    </p>
+    <div class="sub">
+      GitHub Pages version aligned to the local <code>cpo ui</code> layout.
+      Enter API key in this GUI when model-call mode is enabled.
+    </div>
+    <div class="chip-row">
+      <div class="chip">CF Middleware</div>
+      <div class="chip">Provider-Agnostic</div>
+      <div class="chip">Chat + Agent Modes</div>
+      <div class="chip">GitHub Pages</div>
+    </div>
 
     <div class="panel">
-      <div class="grid">
+      <div class="help" style="margin-bottom: 10px;">
+        This public page mirrors the local GUI panels. Because GitHub Pages is static,
+        use browser file pickers instead of local path strings. API keys are used only in-browser.
+      </div>
+
+      <div class="grid grid-3">
+        <div>
+          <label for="mode">Input Mode</label>
+          <select id="mode">
+            <option value="directory" selected>Directory</option>
+            <option value="files">File list</option>
+          </select>
+          <div class="help">Directory mode uses folder picker. File list mode uses multi-file picker.</div>
+        </div>
+        <div>
+          <label for="task-type">Task Mode</label>
+          <select id="task-type">
+            <option value="chat" selected>Chat</option>
+            <option value="qa">QA</option>
+            <option value="code">Code</option>
+            <option value="agent">Agent</option>
+          </select>
+          <div class="help"><code>chat</code>, <code>qa</code>, <code>code</code>, <code>agent</code> modes match local GUI behavior.</div>
+        </div>
+        <div>
+          <label for="budget">Budget</label>
+          <input id="budget" type="number" min="1" value="3000">
+          <div class="help">Approx token budget for CF-lite selection.</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 10px;">
+        <label for="query">Query / Task</label>
+        <input id="query" type="text" placeholder="Summarize key points from selected files">
+      </div>
+
+      <div class="grid grid-3" style="margin-top: 10px;">
         <div>
           <label for="provider">Provider</label>
           <select id="provider">
             <option value="anthropic" selected>Anthropic (Claude)</option>
             <option value="openai">OpenAI</option>
+            <option value="ollama">Ollama</option>
             <option value="openai_compatible">OpenAI-Compatible</option>
+            <option value="grok">Grok</option>
+            <option value="kimi">Kimi</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="together">Together</option>
+            <option value="groq">Groq</option>
           </select>
         </div>
         <div>
           <label for="model">Model</label>
-          <input id="model" type="text" value="claude-sonnet-4-6">
+          <input id="model" type="text" value="claude-sonnet-4-6" placeholder="claude-sonnet-4-6">
+        </div>
+        <div>
+          <label for="api-key">API Key</label>
+          <input id="api-key" type="password" placeholder="required for remote model calls">
         </div>
       </div>
 
-      <div class="grid" style="margin-top: 10px;">
+      <div class="grid grid-3" style="margin-top: 10px;">
         <div>
-          <label for="api-key">API Key (required)</label>
-          <input id="api-key" type="password" placeholder="sk-...">
-        </div>
-        <div>
-          <label for="base-url">Base URL (OpenAI-Compatible only)</label>
+          <label for="base-url">Base URL (for compatible providers)</label>
           <input id="base-url" type="text" placeholder="https://api.example.com/v1">
+          <div class="help">For <code>openai_compatible</code>, <code>grok</code>, <code>kimi</code>, <code>deepseek</code>, <code>together</code>, <code>groq</code>, or custom endpoints.</div>
         </div>
-      </div>
-
-      <div class="grid" style="margin-top: 10px;">
         <div>
-          <label for="budget">CF-lite Token Budget (approx)</label>
-          <input id="budget" type="number" min="1" value="1200">
+          <label for="max-answer-tokens">Max Answer Tokens</label>
+          <input id="max-answer-tokens" type="number" min="1" value="256">
         </div>
         <div>
           <label for="temperature">Temperature</label>
@@ -148,229 +235,507 @@
         </div>
       </div>
 
-      <div style="margin-top: 10px;">
-        <label for="query">Query / Task</label>
-        <input id="query" type="text" placeholder="Summarize the strongest evidence">
+      <div class="inline-check">
+        <input id="call-model" type="checkbox" checked>
+        <label for="call-model" style="margin: 0;">Call model after CF pipeline</label>
+      </div>
+
+      <div id="dir-input-wrap" style="margin-top: 10px;">
+        <label for="directory-picker">Directory Input</label>
+        <input id="directory-picker" type="file" webkitdirectory directory multiple>
+        <div class="help">Pick a folder from your machine. Browser access is sandboxed to selected files.</div>
+      </div>
+
+      <div id="files-input-wrap" style="display:none; margin-top: 10px;">
+        <label for="files-picker">File List Input</label>
+        <input id="files-picker" type="file" multiple>
+        <div class="help">Pick one or more files explicitly.</div>
       </div>
 
       <div style="margin-top: 10px;">
-        <label for="context">Input Context (paste text/doc excerpts)</label>
-        <textarea id="context" placeholder="Paste text sources here. CF-lite will deduplicate and select budget-fit blocks."></textarea>
-        <div class="tiny">This public page cannot read local files; paste your text here.</div>
+        <label for="extra-context">Extra Context (optional)</label>
+        <textarea id="extra-context" placeholder="Paste any extra text context here"></textarea>
       </div>
 
-      <button id="run-btn">Run ContextFusion Public GUI</button>
-      <div id="status" class="status"></div>
+      <div style="margin-top: 12px;">
+        <button id="run-btn" class="btn">Run ContextFusion Pipeline</button>
+        <div class="help">Runs browser-side ingest -> normalize -> CF-lite select -> optional model call.</div>
+        <div id="status" class="status"></div>
+      </div>
     </div>
 
     <div class="panel">
-      <label>Selected Context (CF-lite)</label>
-      <pre id="selected"></pre>
+      <h3>Run Stats</h3>
+      <div id="stats-cards" class="cards"></div>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="panel">
+        <h3>Representation Usage</h3>
+        <div id="rep-bars" class="bars"></div>
+      </div>
+      <div class="panel">
+        <h3>Selected Source Types</h3>
+        <div id="source-bars" class="bars"></div>
+      </div>
     </div>
 
     <div class="panel">
-      <label>Model Answer</label>
-      <pre id="answer"></pre>
+      <h3>Selected Blocks (Actual CF Output)</h3>
+      <pre id="selected-blocks" class="mono"></pre>
+    </div>
+
+    <div class="panel">
+      <h3>Context Preview</h3>
+      <pre id="context-preview" class="mono"></pre>
+    </div>
+
+    <div class="panel">
+      <h3>Model Answer (CF as Middleware)</h3>
+      <pre id="model-answer" class="mono"></pre>
     </div>
   </div>
 
   <script>
+    const modeEl = document.getElementById("mode");
+    const taskTypeEl = document.getElementById("task-type");
+    const providerEl = document.getElementById("provider");
+    const dirWrap = document.getElementById("dir-input-wrap");
+    const filesWrap = document.getElementById("files-input-wrap");
+    const runBtn = document.getElementById("run-btn");
+    const statusEl = document.getElementById("status");
+
     const defaultModelByProvider = {
       anthropic: "claude-sonnet-4-6",
       openai: "gpt-5-mini",
-      openai_compatible: "gpt-4o-mini"
+      ollama: "llama3.1",
+      openai_compatible: "gpt-4o-mini",
+      grok: "grok-2-latest",
+      kimi: "kimi-k2",
+      deepseek: "deepseek-chat",
+      together: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+      groq: "llama-3.1-70b-versatile"
     };
 
-    function setStatus(message, isError = false) {
-      const el = document.getElementById("status");
-      el.textContent = message || "";
-      el.className = isError ? "status error" : "status";
+    const defaultBaseUrlByProvider = {
+      ollama: "http://localhost:11434",
+      openai_compatible: "",
+      grok: "https://api.x.ai/v1",
+      kimi: "https://api.moonshot.ai/v1",
+      deepseek: "https://api.deepseek.com/v1",
+      together: "https://api.together.xyz/v1",
+      groq: "https://api.groq.com/openai/v1"
+    };
+
+    const textExt = new Set([
+      "txt", "md", "markdown", "log", "csv", "tsv", "json", "jsonl",
+      "py", "js", "ts", "tsx", "jsx", "go", "rs", "java", "c", "cpp", "h", "hpp", "rb", "php", "sh", "yaml", "yml", "xml", "html", "css", "sql"
+    ]);
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || "";
+      statusEl.className = isError ? "status error" : "status";
     }
 
     function approxTokens(text) {
-      const parts = (text || "").trim().split(/\s+/).filter(Boolean);
-      return parts.length;
+      const parts = String(text || "").trim().split(/\s+/).filter(Boolean);
+      return Math.max(1, parts.length);
     }
 
-    function dedupAndSplit(raw) {
-      const chunks = raw
-        .split(/\n\s*\n|\r\n\s*\r\n/g)
-        .map((x) => x.trim())
-        .filter(Boolean);
-      const seen = new Set();
+    function fileExt(name) {
+      const idx = name.lastIndexOf(".");
+      if (idx < 0) return "";
+      return name.slice(idx + 1).toLowerCase();
+    }
+
+    function sourceTypeFromExt(ext) {
+      if (["png", "jpg", "jpeg", "gif", "webp", "bmp", "tiff"].includes(ext)) return "IMAGE";
+      if (["pdf", "docx", "doc", "pptx", "xlsx"].includes(ext)) return "DOCUMENT";
+      if (["py", "js", "ts", "tsx", "jsx", "go", "rs", "java", "c", "cpp", "h", "hpp", "rb", "php", "sh", "sql"].includes(ext)) return "CODE";
+      if (["csv", "tsv", "json", "jsonl", "yaml", "yml", "xml"].includes(ext)) return "STRUCTURED";
+      return "TEXT";
+    }
+
+    function splitSegments(text) {
+      const input = String(text || "").trim();
+      if (!input) return [];
+      const coarse = input.split(/\n\s*\n|\r\n\s*\r\n/g).map((x) => x.trim()).filter(Boolean);
       const out = [];
-      for (const chunk of chunks) {
-        const key = chunk.toLowerCase().replace(/\s+/g, " ").trim();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        out.push(chunk);
+      for (const item of coarse) {
+        if (item.length <= 1200) {
+          out.push(item);
+          continue;
+        }
+        for (let i = 0; i < item.length; i += 1100) {
+          out.push(item.slice(i, i + 1100));
+        }
       }
       return out;
     }
 
-    function scoreChunk(chunk, queryTerms) {
-      const lower = chunk.toLowerCase();
-      let hit = 0;
+    function codeSignatureOnly(text) {
+      const lines = String(text || "").split(/\r?\n/);
+      const out = [];
+      for (const line of lines) {
+        const s = line.trim();
+        if (/^(def\s+|class\s+|function\s+|export\s+function\s+|export\s+const\s+|const\s+\w+\s*=\s*\()/.test(s)) {
+          out.push(s);
+        }
+        if (out.length >= 12) break;
+      }
+      if (!out.length) {
+        return String(text || "").slice(0, 500);
+      }
+      return out.join("\n");
+    }
+
+    function bulletSummary3(text) {
+      const clean = String(text || "").replace(/\s+/g, " ").trim();
+      const parts = clean.split(/[.!?]\s+/).filter(Boolean).slice(0, 3);
+      if (!parts.length) return clean.slice(0, 450);
+      return parts.map((p) => `- ${p.trim()}`).join("\n");
+    }
+
+    function workingMemoryBrief(text) {
+      const clean = String(text || "").replace(/\s+/g, " ").trim();
+      return clean.slice(0, 380);
+    }
+
+    function chooseRepresentation(taskType, sourceType, text) {
+      if (sourceType === "CODE" && taskType === "code") {
+        return { type: "signature_only", text: codeSignatureOnly(text) };
+      }
+      if (taskType === "qa" && text.length > 260) {
+        return { type: "bullet_summary_3", text: bulletSummary3(text) };
+      }
+      if (taskType === "agent" && text.length > 180) {
+        return { type: "working_memory_brief", text: workingMemoryBrief(text) };
+      }
+      return { type: "full_text", text };
+    }
+
+    function scoreBlock(block, queryTerms) {
+      const lower = block.text.toLowerCase();
+      let hits = 0;
       for (const term of queryTerms) {
-        if (lower.includes(term)) hit += 1;
+        if (lower.includes(term)) hits += 1;
       }
-      const tokenPenalty = Math.min(0.25, approxTokens(chunk) / 2500);
-      return hit - tokenPenalty;
+      const repBonus = block.representation_type === "full_text" ? 0.05 : 0.12;
+      const sourceBonus = block.source_type === "CODE" ? 0.06 : 0.02;
+      const tokenPenalty = Math.min(0.45, block.tokens_est / 1600);
+      return (hits * 0.35) + repBonus + sourceBonus - tokenPenalty;
     }
 
-    function selectContext(rawContext, query, budget) {
-      const chunks = dedupAndSplit(rawContext);
-      const queryTerms = (query || "")
-        .toLowerCase()
-        .split(/[^a-z0-9]+/)
-        .filter((w) => w.length >= 3);
-
-      const scored = chunks.map((chunk) => ({
-        text: chunk,
-        tokens: approxTokens(chunk),
-        score: scoreChunk(chunk, queryTerms),
-      }));
-
-      scored.sort((a, b) => b.score - a.score || a.tokens - b.tokens);
-
-      const selected = [];
-      let used = 0;
-      for (const item of scored) {
-        if (used + item.tokens > budget) continue;
-        selected.push(item);
-        used += item.tokens;
+    async function fileToText(file) {
+      const ext = fileExt(file.name);
+      if (["png", "jpg", "jpeg", "gif", "webp", "bmp", "tiff"].includes(ext)) {
+        return "[Image: No text detected]";
       }
-
-      if (!selected.length && scored.length) {
-        selected.push(scored[0]);
-        used = scored[0].tokens;
+      if (["pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"].includes(ext)) {
+        return `[Unsupported in browser-only mode: ${file.name}]`;
       }
-
-      return { selected, used };
+      if (!textExt.has(ext)) {
+        return `[Unsupported file type in browser mode: ${file.name}]`;
+      }
+      return await file.text();
     }
 
-    function buildPrompt(query, selectedChunks) {
-      const merged = selectedChunks.map((c, i) => `[${i + 1}] ${c.text}`).join("\n\n");
+    function renderCards(stats) {
+      const root = document.getElementById("stats-cards");
+      root.innerHTML = "";
+      const pairs = [
+        ["Files", stats.files_ingested ?? 0],
+        ["Segments", stats.segments_extracted ?? 0],
+        ["Blocks Created", stats.blocks_created ?? 0],
+        ["Blocks Selected", stats.blocks_selected ?? 0],
+        ["Total Tokens", stats.total_tokens ?? 0],
+      ];
+      for (const [k, v] of pairs) {
+        const el = document.createElement("div");
+        el.className = "card";
+        el.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+        root.appendChild(el);
+      }
+    }
+
+    function renderBars(elementId, data) {
+      const root = document.getElementById(elementId);
+      root.innerHTML = "";
+      const entries = Object.entries(data || {});
+      if (!entries.length) {
+        root.innerHTML = "<div class='sub'>No data</div>";
+        return;
+      }
+      const maxValue = Math.max(...entries.map(([, v]) => Number(v) || 0), 1);
+      for (const [name, value] of entries.sort((a, b) => Number(b[1]) - Number(a[1]))) {
+        const width = ((Number(value) || 0) / maxValue) * 100;
+        const row = document.createElement("div");
+        row.className = "bar-row";
+        row.innerHTML = `
+          <div class="mono">${name}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${width}%;"></div></div>
+          <div class="mono">${value}</div>
+        `;
+        root.appendChild(row);
+      }
+    }
+
+    function renderSelectedBlocks(blocks) {
+      const root = document.getElementById("selected-blocks");
+      if (!blocks || !blocks.length) {
+        root.textContent = "No selected blocks.";
+        return;
+      }
+      const lines = blocks.map((block, index) =>
+        `${index + 1}. ${block.source_uri} | rep=${block.representation_type} | tokens=${block.tokens_est} | score=${block.score.toFixed(4)}`
+      );
+      root.textContent = lines.join("\n");
+    }
+
+    function buildPrompt(query, contextText) {
       return [
         "Use only the provided context.",
-        "If context is insufficient, say so explicitly.",
+        "If context is insufficient, say: Insufficient context from extracted content.",
+        "Be concise.",
         "",
         "Query:",
         query || "(no query provided)",
         "",
         "Context:",
-        merged,
+        contextText
       ].join("\n");
     }
 
-    async function callAnthropic(apiKey, model, prompt, temperature) {
+    async function callAnthropic(apiKey, model, prompt, maxTokens, temperature) {
       const resp = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-api-key": apiKey,
-          "anthropic-version": "2023-06-01",
+          "anthropic-version": "2023-06-01"
         },
         body: JSON.stringify({
           model,
-          max_tokens: 512,
+          max_tokens: maxTokens,
           temperature,
-          messages: [{ role: "user", content: prompt }],
-        }),
+          system: "You are a concise assistant.",
+          messages: [{ role: "user", content: prompt }]
+        })
       });
       const data = await resp.json();
       if (!resp.ok) {
         throw new Error(data?.error?.message || `Anthropic error (${resp.status})`);
       }
-      const text = Array.isArray(data.content)
-        ? data.content.filter((x) => x?.type === "text").map((x) => x.text).join("\n")
-        : "";
-      return text || "(empty response)";
+      if (!Array.isArray(data.content)) return "";
+      return data.content.filter((x) => x?.type === "text").map((x) => x.text).join("\n").trim();
     }
 
-    async function callOpenAICompatible(endpoint, apiKey, model, prompt, temperature) {
+    async function callOpenAIChat(endpoint, apiKey, model, prompt, maxTokens, temperature) {
+      const headers = { "Content-Type": "application/json" };
+      if (apiKey) {
+        headers["Authorization"] = `Bearer ${apiKey}`;
+      }
       const resp = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${apiKey}`,
-        },
+        headers,
         body: JSON.stringify({
           model,
           temperature,
-          max_tokens: 512,
+          max_tokens: maxTokens,
           messages: [
             { role: "system", content: "You are a concise assistant." },
-            { role: "user", content: prompt },
-          ],
-        }),
+            { role: "user", content: prompt }
+          ]
+        })
       });
       const data = await resp.json();
       if (!resp.ok) {
         throw new Error(data?.error?.message || `API error (${resp.status})`);
       }
-      return data?.choices?.[0]?.message?.content || "(empty response)";
+      return (data?.choices?.[0]?.message?.content || "").trim();
     }
 
-    async function run() {
+    function providerEndpoint(provider, baseUrl) {
+      if (provider === "openai") return "https://api.openai.com/v1/chat/completions";
+      if (provider === "ollama") {
+        const root = (baseUrl || defaultBaseUrlByProvider.ollama || "http://localhost:11434").replace(/\/+$/, "");
+        return `${root}/v1/chat/completions`;
+      }
+      const compatProviders = new Set(["openai_compatible", "grok", "kimi", "deepseek", "together", "groq"]);
+      if (compatProviders.has(provider)) {
+        const fallback = defaultBaseUrlByProvider[provider] || "";
+        const root = (baseUrl || fallback).replace(/\/+$/, "");
+        if (!root) {
+          throw new Error("Base URL is required for selected provider.");
+        }
+        return `${root}/chat/completions`;
+      }
+      throw new Error(`Unsupported provider: ${provider}`);
+    }
+
+    async function collectInputFiles() {
+      const mode = modeEl.value;
+      if (mode === "directory") {
+        return Array.from(document.getElementById("directory-picker").files || []);
+      }
+      return Array.from(document.getElementById("files-picker").files || []);
+    }
+
+    modeEl.addEventListener("change", () => {
+      const isDir = modeEl.value === "directory";
+      dirWrap.style.display = isDir ? "block" : "none";
+      filesWrap.style.display = isDir ? "none" : "block";
+    });
+
+    providerEl.addEventListener("change", () => {
+      const provider = providerEl.value;
+      const modelInput = document.getElementById("model");
+      const baseUrlInput = document.getElementById("base-url");
+      modelInput.value = defaultModelByProvider[provider] || modelInput.value;
+      if (!baseUrlInput.value && defaultBaseUrlByProvider[provider]) {
+        baseUrlInput.value = defaultBaseUrlByProvider[provider];
+      }
+    });
+
+    runBtn.addEventListener("click", async () => {
       setStatus("Running...", false);
-      const runBtn = document.getElementById("run-btn");
       runBtn.disabled = true;
+      document.getElementById("model-answer").textContent = "";
+
       try {
-        const provider = document.getElementById("provider").value;
-        const apiKey = document.getElementById("api-key").value.trim();
-        const model = document.getElementById("model").value.trim() || defaultModelByProvider[provider];
+        const files = await collectInputFiles();
+        const extraContext = document.getElementById("extra-context").value.trim();
+        const taskType = taskTypeEl.value;
         const query = document.getElementById("query").value.trim();
-        const rawContext = document.getElementById("context").value;
-        const budget = Number(document.getElementById("budget").value || 1200);
-        const temperature = Number(document.getElementById("temperature").value || 0);
+        const budget = Number(document.getElementById("budget").value || 3000);
+        const provider = document.getElementById("provider").value;
+        const model = document.getElementById("model").value.trim() || defaultModelByProvider[provider];
+        const apiKey = document.getElementById("api-key").value.trim();
         const baseUrl = document.getElementById("base-url").value.trim();
+        const callModel = document.getElementById("call-model").checked;
+        const maxAnswerTokens = Number(document.getElementById("max-answer-tokens").value || 256);
+        const temperature = Number(document.getElementById("temperature").value || 0);
 
-        if (!apiKey) throw new Error("API key is required.");
-        if (!rawContext.trim()) throw new Error("Input Context is required.");
-        if (budget <= 0) throw new Error("Budget must be greater than zero.");
-
-        const selected = selectContext(rawContext, query, budget);
-        const selectedText = selected.selected
-          .map((item, i) => `${i + 1}. score=${item.score.toFixed(2)} tokens=${item.tokens}\n${item.text}`)
-          .join("\n\n");
-        document.getElementById("selected").textContent = selectedText || "(no selected content)";
-
-        const prompt = buildPrompt(query, selected.selected);
-        let answer = "";
-        if (provider === "anthropic") {
-          answer = await callAnthropic(apiKey, model, prompt, temperature);
-        } else if (provider === "openai") {
-          answer = await callOpenAICompatible(
-            "https://api.openai.com/v1/chat/completions",
-            apiKey,
-            model,
-            prompt,
-            temperature,
-          );
-        } else {
-          if (!baseUrl) {
-            throw new Error("Base URL is required for OpenAI-Compatible provider.");
-          }
-          const endpoint = `${baseUrl.replace(/\/+$/, "")}/chat/completions`;
-          answer = await callOpenAICompatible(endpoint, apiKey, model, prompt, temperature);
+        if (budget <= 0) throw new Error("budget must be greater than zero");
+        if (!files.length && !extraContext) {
+          throw new Error("Select files or provide Extra Context.");
         }
 
-        document.getElementById("answer").textContent = answer;
-        setStatus(`Done. Selected approx tokens: ${selected.used}`, false);
+        const queryTerms = query.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length >= 3);
+
+        const blocks = [];
+        let segmentsExtracted = 0;
+        let filesIngested = files.length;
+
+        for (const file of files) {
+          const rawText = await fileToText(file);
+          const ext = fileExt(file.name);
+          const sourceType = sourceTypeFromExt(ext);
+          const segments = splitSegments(rawText);
+          segmentsExtracted += segments.length;
+
+          segments.forEach((segmentText, idx) => {
+            const rep = chooseRepresentation(taskType, sourceType, segmentText);
+            blocks.push({
+              block_id: `${file.name}#${idx + 1}`,
+              source_uri: file.webkitRelativePath || file.name,
+              source_type: sourceType,
+              representation_type: rep.type,
+              text: rep.text,
+              tokens_est: approxTokens(rep.text),
+              score: 0,
+            });
+          });
+        }
+
+        if (extraContext) {
+          filesIngested += 1;
+          const segments = splitSegments(extraContext);
+          segmentsExtracted += segments.length;
+          segments.forEach((segmentText, idx) => {
+            const rep = chooseRepresentation(taskType, "TEXT", segmentText);
+            blocks.push({
+              block_id: `extra_context#${idx + 1}`,
+              source_uri: "extra_context",
+              source_type: "TEXT",
+              representation_type: rep.type,
+              text: rep.text,
+              tokens_est: approxTokens(rep.text),
+              score: 0,
+            });
+          });
+        }
+
+        const scored = blocks.map((block) => {
+          const score = scoreBlock(block, queryTerms);
+          return { ...block, score };
+        }).sort((a, b) => b.score - a.score || a.tokens_est - b.tokens_est);
+
+        const selected = [];
+        let usedTokens = 0;
+        for (const block of scored) {
+          if ((usedTokens + block.tokens_est) <= budget) {
+            selected.push(block);
+            usedTokens += block.tokens_est;
+          }
+        }
+        if (!selected.length && scored.length) {
+          selected.push(scored[0]);
+          usedTokens = scored[0].tokens_est;
+        }
+
+        const representationCounts = {};
+        const sourceTypeCounts = {};
+        for (const block of selected) {
+          representationCounts[block.representation_type] = (representationCounts[block.representation_type] || 0) + 1;
+          sourceTypeCounts[block.source_type] = (sourceTypeCounts[block.source_type] || 0) + 1;
+        }
+
+        const stats = {
+          files_ingested: filesIngested,
+          segments_extracted: segmentsExtracted,
+          blocks_created: blocks.length,
+          blocks_selected: selected.length,
+          total_tokens: usedTokens,
+        };
+
+        renderCards(stats);
+        renderBars("rep-bars", representationCounts);
+        renderBars("source-bars", sourceTypeCounts);
+        renderSelectedBlocks(selected);
+
+        const contextPreview = selected.map((b, i) => `[${i + 1}] ${b.text}`).join("\n\n");
+        document.getElementById("context-preview").textContent = contextPreview || "";
+
+        const modelAnswerEl = document.getElementById("model-answer");
+        if (!callModel) {
+          modelAnswerEl.textContent = "Model call skipped. Enable 'Call model after CF pipeline'.";
+          setStatus("Run complete", false);
+          return;
+        }
+
+        if (provider !== "ollama" && !apiKey) {
+          throw new Error("API key is required for remote provider calls.");
+        }
+
+        const prompt = buildPrompt(query, contextPreview);
+        let answer = "";
+
+        if (provider === "anthropic") {
+          answer = await callAnthropic(apiKey, model, prompt, maxAnswerTokens, temperature);
+        } else {
+          const endpoint = providerEndpoint(provider, baseUrl);
+          answer = await callOpenAIChat(endpoint, provider === "ollama" ? "" : apiKey, model, prompt, maxAnswerTokens, temperature);
+        }
+
+        modelAnswerEl.textContent = `${answer || "(empty response)"}\n\n---\nprovider=${provider} | model=${model} | task_mode=${taskType} | input_messages=2`;
+        setStatus("Run complete", false);
       } catch (err) {
         setStatus(err.message || String(err), true);
-        document.getElementById("answer").textContent = "";
       } finally {
         runBtn.disabled = false;
       }
-    }
-
-    document.getElementById("provider").addEventListener("change", (e) => {
-      const provider = e.target.value;
-      document.getElementById("model").value = defaultModelByProvider[provider] || "";
     });
-    document.getElementById("run-btn").addEventListener("click", run);
   </script>
 </body>
 </html>
