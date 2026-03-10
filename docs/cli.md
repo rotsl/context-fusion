@@ -6,6 +6,19 @@
 pip install context-portfolio-optimizer
 ```
 
+For local development:
+
+```bash
+make install-dev
+```
+
+Optional `.env` for provider keys:
+
+```bash
+OPENAI_API_KEY=...
+ANTHROPIC_API_KEY=...
+```
+
 ## Commands
 
 ### ingest
@@ -59,6 +72,13 @@ cpo benchmark --dataset rag
 Options:
 - `--dataset, -d`: Dataset to use (tiny, rag)
 - `--output, -o`: Output directory
+
+Makefile equivalents:
+
+```bash
+make benchmark
+make benchmark-rag
+```
 
 ### memory-compact
 

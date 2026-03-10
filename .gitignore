@@ -143,5 +143,6 @@ Thumbs.db
 .cpo_telemetry/
 benchmarks/reports/*.html
 benchmarks/reports/*.json
+benchmarks/datasets/rag_tasks.jsonl
 examples/output/
 *.trainedmodel

@@ -33,6 +33,15 @@ cd context-fusion
 make install-dev
 ```
 
+Create local environment file (kept out of Git):
+
+```bash
+cat > .env << 'EOF'
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+EOF
+```
+
 ### Basic Usage
 
 ```python
@@ -164,10 +173,28 @@ cpo ui --host 127.0.0.1 --port 8080
 
 Then open `http://127.0.0.1:8080`.
 
+You can also use:
+
+```bash
+make ui
+```
+
 Docker Compose:
 
 ```bash
 docker compose up cpo-ui
+```
+
+## Benchmarks
+
+Run minimal benchmark commands:
+
+```bash
+# Tiny benchmark (uses bundled tiny dataset)
+make benchmark
+
+# RAG benchmark runner (creates placeholder dataset if missing)
+make benchmark-rag
 ```
 
 ## Testing
