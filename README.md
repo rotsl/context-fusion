@@ -631,16 +631,23 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
 
 <h3 align="center">Interactive CF vs Without CF</h3>
-<p align="center">Click to play an alternating comparison using the latest README benchmark metrics.</p>
-<details>
-  <summary><strong>Toggle Comparison Animation</strong></summary>
-  <p align="center">
-    <marquee behavior="alternate" direction="left" scrollamount="7" width="96%">
-      With ContextFusion: success 100.0% | context tokens 10.3 | avg total latency 7763.3 ms
-      &nbsp;&nbsp;&nbsp;vs&nbsp;&nbsp;&nbsp;
-      Without ContextFusion: success 100.0% | context tokens 947.0 | avg total latency 8609.6 ms
-    </marquee>
-  </p>
-</details>
+<p align="center">Auto-moving benchmark graph (up/down) using the latest README metrics.</p>
+<p align="center">
+  <marquee direction="up" behavior="alternate" height="180" scrollamount="2">
+    <pre>
+TOKENS (lower is better)
+With CF       | #                                        | 10.3
+Without CF    | ######################################## | 947.0
+
+TOTAL LATENCY (lower is better)
+With CF       | ####################################     | 7763.3 ms
+Without CF    | ######################################## | 8609.6 ms
+
+SUCCESS RATE
+With CF       | ######################################## | 100.0%
+Without CF    | ######################################## | 100.0%
+    </pre>
+  </marquee>
+</p>
 
 <p align="center"><strong>🚀ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>
