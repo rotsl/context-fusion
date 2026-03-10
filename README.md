@@ -165,13 +165,29 @@ python examples/multiformat_ingestion_demo.py
 
 ## Web UI
 
+The UI is a local browser app to run the pipeline and inspect:
+- run stats (`files_ingested`, `blocks_selected`, `total_tokens`, etc.)
+- representation usage
+- selected source types
+- context preview
+
 Run the built-in local UI:
 
 ```bash
 cpo ui --host 127.0.0.1 --port 8080
 ```
 
-Then open `http://127.0.0.1:8080`.
+Then open `http://127.0.0.1:8080` and follow these exact steps:
+
+1. Choose `Input Mode`:
+   - `Directory` to process a folder
+   - `File list` to process explicit files
+2. Set `Budget` (token budget).
+3. Provide input path(s):
+   - `Directory Path` (example: `./docs`)
+   - or `File Paths` (one file per line)
+4. Click `Run Pipeline`.
+5. Review `Run Stats`, `Representation Usage`, `Selected Source Types`, and `Context Preview`.
 
 You can also use:
 
@@ -187,13 +203,28 @@ docker compose up cpo-ui
 
 ## Benchmarks
 
-Run minimal benchmark commands:
+Run the tiny benchmark comparison:
 
 ```bash
-# Tiny benchmark (uses bundled tiny dataset)
 make benchmark
+```
 
-# RAG benchmark runner (creates placeholder dataset if missing)
+Output:
+- terminal comparison (`ContextFusion` vs `Without ContextFusion`)
+- markdown report: `benchmarks/BENCHMARK_RESULTS.md`
+
+Latest tiny benchmark run (`2026-03-10`, local deterministic):
+- with ContextFusion success: `100.0%`
+- without ContextFusion success: `100.0%`
+- avg tokens with ContextFusion: `43.0`
+- avg tokens without ContextFusion: `99.0`
+- avg token reduction: `56.6%`
+
+For full per-task details, see `benchmarks/BENCHMARK_RESULTS.md`.
+
+Optional RAG benchmark runner:
+
+```bash
 make benchmark-rag
 ```
 
