@@ -631,44 +631,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
 
 <p align="center">
-  <marquee direction="up" behavior="scroll" scrollamount="3" height="140">
-    <pre>
-With CF       |                                          | 0.0
-Without CF    |                                          | 0.0
-
-With CF       |                                          | 1.0
-Without CF    | ####                                     | 94.7
-
-With CF       |                                          | 2.1
-Without CF    | ########                                 | 189.4
-
-With CF       |                                          | 3.1
-Without CF    | ############                             | 284.1
-
-With CF       |                                          | 4.1
-Without CF    | ################                         | 378.8
-
-With CF       | ##                                       | 5.2
-Without CF    | ####################                     | 473.5
-
-With CF       | ##                                       | 6.2
-Without CF    | ########################                 | 568.2
-
-With CF       | ##                                       | 7.2
-Without CF    | ############################             | 662.9
-
-With CF       | ##                                       | 8.2
-Without CF    | ################################         | 757.6
-
-With CF       | ##                                       | 9.3
-Without CF    | ####################################     | 852.3
-
-With CF       | ##                                       | 10.3
-Without CF    | ######################################## | 947.0
-
-With CF       | #                                        | 10.3
-Without CF    | ######################################## | 947.0
-    </pre>
+  <marquee behavior="alternate" direction="up" height="70" scrollamount="2">
+    <code>With CF | # | 10.3</code><br />
+    <code>Without CF | ######################################## | 947.0</code>
   </marquee>
 </p>
 
