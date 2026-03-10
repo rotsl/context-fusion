@@ -4,6 +4,9 @@
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=rotsl.context-fusion)](https://github.com/rotsl/context-fusion)
+[![GitHub forks](https://img.shields.io/github/forks/rotsl/context-fusion?style=flat)](https://github.com/rotsl/context-fusion/network/members)
+[![GitHub last commit](https://img.shields.io/github/last-commit/rotsl/context-fusion)](https://github.com/rotsl/context-fusion/commits/main)
+[![GitHub repo size](https://img.shields.io/github/repo-size/rotsl/context-fusion)](https://github.com/rotsl/context-fusion)
 [![Claude API CF Success](https://img.shields.io/badge/Claude_API_with_CF-100%25-brightgreen.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![API Context Tokens](https://img.shields.io/badge/API_context_tokens-10.3_vs_947.0-blue.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![Modes](https://img.shields.io/badge/modes-chat%20%7C%20qa%20%7C%20code%20%7C%20agent-orange.svg)](#usage-flowcharts)
@@ -630,8 +633,5 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
 
-<p align="center">
-  <img src="assets/cf-comparison.svg" />
-</p>
 
 <p align="center"><strong>🚀ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>
