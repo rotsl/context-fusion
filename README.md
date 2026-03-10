@@ -15,6 +15,7 @@ A framework for optimizing LLM context usage across heterogeneous data sources.
 - **Knapsack Optimization**: Solve token budget allocation as constrained optimization
 - **Ablation Studies**: Learn which context contributes most to outcomes
 - **Memory Management**: Persistent storage with compaction and retention policies
+- **Web UI Visualization**: Run and inspect pipeline outputs in a local browser UI
 
 ## Quick Start
 
@@ -59,6 +60,9 @@ cpo plan "Summarize these documents" --budget 5000
 
 # Run ablation study
 cpo ablate ./data --budget 3000
+
+# Launch local visualization UI
+cpo ui --host 127.0.0.1 --port 8080
 ```
 
 ## Architecture
@@ -150,6 +154,22 @@ Run examples:
 python examples/multiformat_ingestion_demo.py
 ```
 
+## Web UI
+
+Run the built-in local UI:
+
+```bash
+cpo ui --host 127.0.0.1 --port 8080
+```
+
+Then open `http://127.0.0.1:8080`.
+
+Docker Compose:
+
+```bash
+docker compose up cpo-ui
+```
+
 ## Testing
 
 ```bash
@@ -178,6 +198,9 @@ make type-check
 # Format code
 make format
 
+# Run local Web UI
+make ui
+
 # Run all checks
 make all-checks
 ```
@@ -195,6 +218,7 @@ context-portfolio-optimizer/
 │   ├── memory/             # Memory storage
 │   ├── providers/          # LLM providers
 │   ├── orchestration/      # Pipeline runner
+│   ├── web_ui.py           # Local visualization server
 │   └── cli.py              # Command-line interface
 ├── configs/                # Configuration files
 ├── examples/               # Usage examples
@@ -215,7 +239,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - [ ] Additional file format support (EPUB, HTML)
 - [ ] Learned utility models from feedback
 - [ ] Distributed processing for large datasets
-- [ ] Web UI for visualization
+- [x] Web UI for visualization
 - [ ] Integration with popular RAG frameworks
 
 ## Acknowledgments

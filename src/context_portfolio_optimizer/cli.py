@@ -275,6 +275,17 @@ def version_cmd():
     console.print(f"ContextFusion version {version.VERSION}")
 
 
+@app.command("ui")
+def ui(
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind"),
+    port: int = typer.Option(8080, "--port", help="Port to bind"),
+):
+    """Run local web UI for pipeline visualization."""
+    from .web_ui import run_web_ui
+
+    run_web_ui(host=host, port=port)
+
+
 def main():
     """Main entry point."""
     app()

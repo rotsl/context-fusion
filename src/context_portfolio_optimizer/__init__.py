@@ -6,6 +6,7 @@
 A framework for optimizing LLM context usage across heterogeneous data sources.
 """
 
+from .orchestration.runner import PipelineRunner
 from .version import VERSION, __version__
 
-__all__ = ["VERSION", "__version__"]
+__all__ = ["VERSION", "__version__", "PipelineRunner"]

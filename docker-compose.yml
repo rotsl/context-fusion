@@ -1,8 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2025–2026 Rohan R @rotsl
 
-version: "3.8"
-
 services:
   cpo:
     build:
@@ -39,9 +37,29 @@ services:
       - CPO_MEMORY_DIR=/app/.cpo_memory
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
-    command: ["bash"]
+    entrypoint: ["/bin/bash"]
     stdin_open: true
     tty: true
+
+  cpo-ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: context-fusion:ui
+    container_name: context-fusion-ui
+    volumes:
+      - .:/app
+      - cpo_cache:/app/.cpo_cache
+      - cpo_memory:/app/.cpo_memory
+    environment:
+      - CPO_CONFIG_PATH=/app/configs/default.yaml
+      - CPO_CACHE_DIR=/app/.cpo_cache
+      - CPO_MEMORY_DIR=/app/.cpo_memory
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    ports:
+      - "8080:8080"
+    command: ["ui", "--host", "0.0.0.0", "--port", "8080"]
 
 volumes:
   cpo_cache:

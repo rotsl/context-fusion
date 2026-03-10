@@ -41,6 +41,9 @@ RUN useradd -m -u 1000 cpo && \
 
 USER cpo
 
+# Default UI port (used by `cpo ui`).
+EXPOSE 8080
+
 # Set entrypoint
 ENTRYPOINT ["cpo"]
 CMD ["--help"]

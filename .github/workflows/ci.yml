@@ -117,6 +117,88 @@ jobs:
         run: |
           pytest tests/integration/ -v -m integration
 
+  examples:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr libtesseract-dev
+
+      - name: Install Python dependencies
+        run: |
+          pip install -e ".[all,dev]"
+
+      - name: Run example scripts
+        run: |
+          python examples/multiformat_ingestion_demo.py
+          python examples/rag_context_optimizer.py
+          python examples/memory_compaction_demo.py
+          python examples/ablation_demo.py
+
+  readme-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr libtesseract-dev
+
+      - name: Install Python dependencies
+        run: |
+          pip install -e ".[all,dev]"
+
+      - name: Basic usage smoke test
+        run: |
+          TMP_DIR="$(mktemp -d)"
+          export TMP_DIR
+          cat > "$TMP_DIR/doc1.txt" << 'EOF'
+          ContextFusion basic usage smoke test content.
+          EOF
+          cat > "$TMP_DIR/doc2.py" << 'EOF'
+          def add(a, b):
+              return a + b
+          EOF
+          python - << 'PY'
+          import os
+          from context_portfolio_optimizer import PipelineRunner
+
+          tmp_dir = os.environ["TMP_DIR"]
+          runner = PipelineRunner()
+          result = runner.run([f"{tmp_dir}/doc1.txt", f"{tmp_dir}/doc2.py"], budget=3000)
+          assert "context" in result
+          assert result["stats"]["files_ingested"] == 2
+          PY
+
+      - name: CLI usage smoke test
+        run: |
+          TMP_DATA="$(mktemp -d)"
+          cat > "$TMP_DATA/readme_sample.txt" << 'EOF'
+          This is sample data for README CLI usage commands.
+          EOF
+          cat > "$TMP_DATA/readme_sample.md" << 'EOF'
+          # README Demo
+          ContextFusion CLI demo content.
+          EOF
+          cpo ingest "$TMP_DATA"
+          cpo run "$TMP_DATA" --budget 3000 --output "$TMP_DATA/context.txt"
+          cpo plan "Summarize these documents" --budget 5000
+          cpo ablate "$TMP_DATA" --budget 3000
+
   build:
     runs-on: ubuntu-latest
     steps:

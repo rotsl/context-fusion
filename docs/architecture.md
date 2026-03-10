@@ -70,6 +70,12 @@ Manages persistent memory:
 - **MemoryCompactor**: Removes duplicates and old entries
 - **RetentionPolicy**: Enforces retention rules
 
+### Interface Layer
+
+User-facing entry points:
+- **CLI (`cpo`)**: Command-line operations for ingest/run/plan/ablate
+- **Web UI (`cpo ui`)**: Local browser-based visualization over pipeline outputs
+
 ## Data Flow
 
 1. **Ingest**: Files → RawSegments
