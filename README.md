@@ -37,7 +37,6 @@ Create local environment file (kept out of Git):
 
 ```bash
 cat > .env << 'EOF'
-OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 EOF
 ```
@@ -125,8 +124,8 @@ scoring:
     token_cost: -0.10
 
 provider:
-  name: openai
-  model: gpt-4-turbo-preview
+  name: anthropic
+  model: claude-sonnet-4-6
 ```
 
 ## Algorithm
@@ -221,6 +220,14 @@ Latest tiny benchmark run (`2026-03-10`, local deterministic):
 - avg token reduction: `56.6%`
 
 For full per-task details, see `benchmarks/BENCHMARK_RESULTS.md`.
+
+Run provider API benchmark (Anthropic):
+
+```bash
+make benchmark-api
+```
+
+This writes `benchmarks/BENCHMARK_API_RESULTS.md`.
 
 Optional RAG benchmark runner:
 

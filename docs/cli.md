@@ -15,7 +15,6 @@ make install-dev
 Optional `.env` for provider keys:
 
 ```bash
-OPENAI_API_KEY=...
 ANTHROPIC_API_KEY=...
 ```
 
@@ -138,7 +137,6 @@ Options:
 
 ## Environment Variables
 
-- `OPENAI_API_KEY`: OpenAI API key
 - `ANTHROPIC_API_KEY`: Anthropic API key
 - `CPO_CONFIG_PATH`: Default config file path
 - `CPO_CACHE_DIR`: Cache directory

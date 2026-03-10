@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2025–2026 Rohan R @rotsl
 
-.PHONY: help install install-dev test test-cov lint format type-check clean build docs demo benchmark ui
+.PHONY: help install install-dev test test-cov lint format type-check clean build docs demo benchmark benchmark-api ui
 
 PYTHON := python3
 PIP := $(PYTHON) -m pip
@@ -23,6 +23,7 @@ help:
 	@echo "  docs         Build documentation"
 	@echo "  demo         Run demo script"
 	@echo "  benchmark    Run benchmark suite"
+	@echo "  benchmark-api Run API benchmark suite (Anthropic)"
 	@echo "  ui           Run local Web UI"
 
 install:
@@ -82,6 +83,9 @@ benchmark:
 
 benchmark-rag:
 	$(PYTHON) benchmarks/runners/run_rag_eval.py
+
+benchmark-api:
+	$(PYTHON) benchmarks/runners/run_api_eval.py
 
 ui:
 	$(PYTHON) -m $(PACKAGE_NAME) ui --host 127.0.0.1 --port 8080
