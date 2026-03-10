@@ -630,22 +630,44 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
 
-<h3 align="center">Interactive CF vs Without CF</h3>
-<p align="center">Auto-moving benchmark graph (up/down) using the latest README metrics.</p>
 <p align="center">
-  <marquee direction="up" behavior="alternate" height="180" scrollamount="2">
+  <marquee direction="up" behavior="scroll" scrollamount="3" height="140">
     <pre>
-TOKENS (lower is better)
-With CF       | #                                        | 10.3
+With CF       |                                          | 0.0
+Without CF    |                                          | 0.0
+
+With CF       |                                          | 1.0
+Without CF    | ####                                     | 94.7
+
+With CF       |                                          | 2.1
+Without CF    | ########                                 | 189.4
+
+With CF       |                                          | 3.1
+Without CF    | ############                             | 284.1
+
+With CF       |                                          | 4.1
+Without CF    | ################                         | 378.8
+
+With CF       | ##                                       | 5.2
+Without CF    | ####################                     | 473.5
+
+With CF       | ##                                       | 6.2
+Without CF    | ########################                 | 568.2
+
+With CF       | ##                                       | 7.2
+Without CF    | ############################             | 662.9
+
+With CF       | ##                                       | 8.2
+Without CF    | ################################         | 757.6
+
+With CF       | ##                                       | 9.3
+Without CF    | ####################################     | 852.3
+
+With CF       | ##                                       | 10.3
 Without CF    | ######################################## | 947.0
 
-TOTAL LATENCY (lower is better)
-With CF       | ####################################     | 7763.3 ms
-Without CF    | ######################################## | 8609.6 ms
-
-SUCCESS RATE
-With CF       | ######################################## | 100.0%
-Without CF    | ######################################## | 100.0%
+With CF       | #                                        | 10.3
+Without CF    | ######################################## | 947.0
     </pre>
   </marquee>
 </p>
