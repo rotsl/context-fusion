@@ -147,3 +147,4 @@ benchmarks/reports/*.json
 benchmarks/datasets/rag_tasks.jsonl
 examples/output/
 *.trainedmodel
+CONTEXTFUSION_PAPER_2026.tex

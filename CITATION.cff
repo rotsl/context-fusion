@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use ContextFusion in your work, please cite it using this metadata."
+title: "ContextFusion"
+version: "0.1.0"
+type: software
+authors:
+  - given-names: "Rohan"
+    family-names: "R"
+    affiliation: "Independent Researcher"
+    orcid: "https://orcid.org/0009-0005-9225-1775"
+repository-code: "https://github.com/rotsl/context-fusion"
+url: "https://github.com/rotsl/context-fusion"
+license: "Apache-2.0"
+date-released: "2026-03-10"
+abstract: >
+  ContextFusion is a provider-neutral context compiler and optimization layer for LLM
+  chat and agent workflows. It ingests heterogeneous sources, builds compact context
+  packets, and compiles provider-specific requests under token and latency budgets.
+keywords:
+  - llm
+  - context optimization
+  - prompt engineering
+  - agent workflows
+  - mcp
+  - retrieval
