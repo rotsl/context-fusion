@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 [project]
 name = "context-portfolio-optimizer"
 dynamic = ["version"]
-description = "A framework for optimizing LLM context usage across heterogeneous data sources"
+description = "Provider-neutral context compiler and middleware for LLM chat and agent workflows"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
@@ -23,6 +23,11 @@ keywords = [
     "token-budget",
     "knapsack",
     "prompt-engineering",
+    "mcp",
+    "agents",
+    "openai",
+    "anthropic",
+    "ollama",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",

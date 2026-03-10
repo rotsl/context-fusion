@@ -16,7 +16,7 @@ make install-dev
 Start the server with CLI:
 
 ```bash
-cpo ui --host 127.0.0.1 --port 8080
+cpo ui --host <host> --port 8080
 ```
 
 Or with Make:
@@ -27,7 +27,7 @@ make ui
 
 Then open:
 
-`http://127.0.0.1:8080`
+`http://<host>:8080`
 
 ## 3. UI Layout
 
@@ -149,10 +149,10 @@ Set budget to a positive integer.
 Start on a different port:
 
 ```bash
-cpo ui --host 127.0.0.1 --port 8081
+cpo ui --host <host> --port 8081
 ```
 
-Then open `http://127.0.0.1:8081`.
+Then open `http://<host>:8081`.
 
 ## 9. Docker Option
 
@@ -161,6 +161,10 @@ You can also run the UI service via Docker Compose:
 ```bash
 docker compose up cpo-ui
 ```
+
+Then open:
+
+`http://<host>:8080`
 
 ## 10. Stop the GUI
 

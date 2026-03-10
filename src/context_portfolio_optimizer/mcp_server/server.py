@@ -65,7 +65,7 @@ class _MCPHandler(BaseHTTPRequestHandler):
             self._json_response(HTTPStatus.BAD_REQUEST, {"error": str(exc)})
 
 
-def run_mcp_server(host: str = "127.0.0.1", port: int = 8765) -> None:
+def run_mcp_server(host: str = "localhost", port: int = 8765) -> None:
     """Run MCP-style HTTP server."""
     server = ThreadingHTTPServer((host, port), _MCPHandler)
     print(f"ContextFusion MCP server running at http://{host}:{port}")

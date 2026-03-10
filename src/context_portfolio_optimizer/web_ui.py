@@ -339,7 +339,7 @@ class _UIHandler(BaseHTTPRequestHandler):
             _json_response(self, HTTPStatus.BAD_REQUEST, {"error": str(exc)})
 
 
-def run_web_ui(host: str = "127.0.0.1", port: int = 8080) -> None:
+def run_web_ui(host: str = "localhost", port: int = 8080) -> None:
     """Run local web UI server.
 
     Args:

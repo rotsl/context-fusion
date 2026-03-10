@@ -58,8 +58,30 @@ services:
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     ports:
-      - "8080:8080"
-    command: ["ui", "--host", "0.0.0.0", "--port", "8080"]
+      - "${CPO_UI_PORT:-8080}:8080"
+    command: ["ui", "--host", "${CPO_UI_HOST:-0.0.0.0}", "--port", "8080"]
+    restart: unless-stopped
+
+  cpo-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: context-fusion:mcp
+    container_name: context-fusion-mcp
+    volumes:
+      - .:/app
+      - cpo_cache:/app/.cpo_cache
+      - cpo_memory:/app/.cpo_memory
+    environment:
+      - CPO_CONFIG_PATH=/app/configs/default.yaml
+      - CPO_CACHE_DIR=/app/.cpo_cache
+      - CPO_MEMORY_DIR=/app/.cpo_memory
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+    ports:
+      - "${CPO_MCP_PORT:-8765}:8765"
+    command: ["serve-mcp", "--host", "${CPO_MCP_HOST:-0.0.0.0}", "--port", "8765"]
+    restart: unless-stopped
 
 volumes:
   cpo_cache:

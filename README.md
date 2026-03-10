@@ -3,6 +3,7 @@
 [![CI](https://github.com/rotsl/context-fusion/actions/workflows/ci.yml/badge.svg)](https://github.com/rotsl/context-fusion/actions)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Visitors](https://visitor-badge.laobi.icu/badge?page_id=rotsl.context-fusion)](https://github.com/rotsl/context-fusion)
 [![Claude API CF Success](https://img.shields.io/badge/Claude_API_with_CF-100%25-brightgreen.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![API Context Tokens](https://img.shields.io/badge/API_context_tokens-10.3_vs_947.0-blue.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![Modes](https://img.shields.io/badge/modes-chat%20%7C%20qa%20%7C%20code%20%7C%20agent-orange.svg)](#usage-flowcharts)
@@ -114,6 +115,62 @@ cpo ablate ./data --budget 3000
 
 # Launch local visualization UI
 cpo ui --host <host> --port 8080
+```
+
+## What Most Users Need
+
+If you only want to use ContextFusion (not develop it), you mainly need:
+
+1. `README.md` for setup and commands
+2. `.env` for provider API keys
+3. `configs/` for provider and budget config overrides (optional)
+4. `examples/gui_input/` for quick GUI test input
+5. `cpo` CLI commands (`run`, `compile`, `ui`, `serve-mcp`)
+
+Provider/client mapping:
+
+- ChatGPT / OpenAI API: use `--provider openai` with `OPENAI_API_KEY`
+- Claude AI / Claude API / Claude Code: use `--provider anthropic` with `ANTHROPIC_API_KEY`
+- Codex and OpenAI-based tooling: use `--provider openai`
+- Local models with Ollama: use `--provider ollama` (no cloud key required)
+- Other MCP clients: run `cpo serve-mcp --host <host> --port <port>` and connect to ContextFusion MCP endpoints
+
+## Docker Usage
+
+Build image:
+
+```bash
+docker build -t context-fusion:latest .
+```
+
+Run interactive CLI container:
+
+```bash
+docker run --rm -it -v "$(pwd)":/app context-fusion:latest --help
+```
+
+Run GUI with Docker Compose:
+
+```bash
+docker compose up cpo-ui
+```
+
+Then open `http://localhost:8080`.
+
+Run MCP server with Docker Compose:
+
+```bash
+docker compose up cpo-mcp
+```
+
+MCP endpoint is available at `http://localhost:8765`.
+
+Useful Make targets:
+
+```bash
+make docker-ui
+make docker-mcp
+make docker-stop
 ```
 
 ## Usage Flowcharts
@@ -534,4 +591,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ContextFusion builds on ideas from information retrieval, operations research, and LLM prompt engineering. The knapsack formulation for context optimization is inspired by classical resource allocation problems.
 
-<p align="center"><strong>ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>
+<p align="center"><strong>🚀ContextFusion</strong> - Fuse less context, keep more signal, ship faster answers.</p>

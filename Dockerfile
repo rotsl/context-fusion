@@ -41,8 +41,9 @@ RUN useradd -m -u 1000 cpo && \
 
 USER cpo
 
-# Default UI port (used by `cpo ui`).
+# Default UI and MCP ports.
 EXPOSE 8080
+EXPOSE 8765
 
 # Set entrypoint
 ENTRYPOINT ["cpo"]

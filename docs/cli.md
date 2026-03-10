@@ -140,7 +140,7 @@ make benchmark-api
 Run the MCP-style server exposing context tools/resources.
 
 ```bash
-cpo serve-mcp --host 127.0.0.1 --port 8765
+cpo serve-mcp --host <host> --port 8765
 ```
 
 ### benchmark-latency
@@ -212,11 +212,11 @@ cpo version
 Run local web UI visualization server.
 
 ```bash
-cpo ui --host 127.0.0.1 --port 8080
+cpo ui --host <host> --port 8080
 ```
 
 Options:
-- `--host`: Host interface to bind (default: 127.0.0.1)
+- `--host`: Host interface to bind (default: `localhost`)
 - `--port`: Port to bind (default: 8080)
 
 ## Environment Variables

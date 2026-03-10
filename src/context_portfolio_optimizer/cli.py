@@ -523,7 +523,7 @@ def precompute(
 
 @app.command("serve-mcp")
 def serve_mcp(
-    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind"),
+    host: str = typer.Option("localhost", "--host", help="Host to bind"),
     port: int = typer.Option(8765, "--port", help="Port to bind"),
 ):
     """Run MCP-style server exposing context tools."""
@@ -601,7 +601,7 @@ def version_cmd():
 
 @app.command("ui")
 def ui(
-    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind"),
+    host: str = typer.Option("localhost", "--host", help="Host to bind"),
     port: int = typer.Option(8080, "--port", help="Port to bind"),
 ):
     """Run local web UI for pipeline visualization."""

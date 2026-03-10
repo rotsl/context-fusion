@@ -1,11 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright (c) 2025–2026 Rohan R @rotsl
 
-.PHONY: help install install-dev test test-cov lint format type-check clean build docs demo benchmark benchmark-api precompute serve-mcp benchmark-latency benchmark-tokens benchmark-agent-loops inspect-cache ui
+.PHONY: help install install-dev test test-cov lint format type-check clean build docs demo benchmark benchmark-api precompute serve-mcp benchmark-latency benchmark-tokens benchmark-agent-loops inspect-cache ui docker-build docker-run docker-ui docker-mcp docker-stop
 
 PYTHON := python3
 PIP := $(PYTHON) -m pip
 PACKAGE_NAME := context_portfolio_optimizer
+HOST ?= localhost
+UI_PORT ?= 8080
+MCP_PORT ?= 8765
 
 help:
 	@echo "ContextFusion - Context Portfolio Optimizer"
@@ -31,6 +34,9 @@ help:
 	@echo "  benchmark-agent-loops Benchmark delta fusion for agent loops"
 	@echo "  inspect-cache Inspect packet and precompute cache stats"
 	@echo "  ui           Run local Web UI"
+	@echo "  docker-ui    Run Web UI with Docker Compose"
+	@echo "  docker-mcp   Run MCP server with Docker Compose"
+	@echo "  docker-stop  Stop Docker Compose services"
 
 install:
 	$(PIP) install -e ".[all]"
@@ -97,7 +103,7 @@ precompute:
 	$(PYTHON) -m $(PACKAGE_NAME) precompute ./data
 
 serve-mcp:
-	$(PYTHON) -m $(PACKAGE_NAME) serve-mcp --host 127.0.0.1 --port 8765
+	$(PYTHON) -m $(PACKAGE_NAME) serve-mcp --host $(HOST) --port $(MCP_PORT)
 
 benchmark-latency:
 	$(PYTHON) -m $(PACKAGE_NAME) benchmark-latency ./data --iterations 5
@@ -112,7 +118,7 @@ inspect-cache:
 	$(PYTHON) -m $(PACKAGE_NAME) inspect-cache
 
 ui:
-	$(PYTHON) -m $(PACKAGE_NAME) ui --host 127.0.0.1 --port 8080
+	$(PYTHON) -m $(PACKAGE_NAME) ui --host $(HOST) --port $(UI_PORT)
 
 cli-help:
 	$(PYTHON) -m $(PACKAGE_NAME) --help
@@ -122,6 +128,15 @@ docker-build:
 
 docker-run:
 	docker run --rm -it context-fusion:latest
+
+docker-ui:
+	docker compose up cpo-ui
+
+docker-mcp:
+	docker compose up cpo-mcp
+
+docker-stop:
+	docker compose down
 
 bootstrap:
 	bash scripts/bootstrap.sh
