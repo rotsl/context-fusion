@@ -14,6 +14,8 @@
 [![API Context Tokens](https://img.shields.io/badge/API_context_tokens-10.3_vs_947.0-blue.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![Modes](https://img.shields.io/badge/modes-chat%20%7C%20qa%20%7C%20code%20%7C%20agent-orange.svg)](#usage-flowcharts)
 
+<meta name="google-site-verification" content="rWGWnb1fHbO5_ldWMLtaST9XC5CLM3wsLZdLNpQcki4" />
+
 ContextFusion keeps answer quality stable while cutting prompt payload size for chat and agent loops.
 I built it to solve recurring token bloat and latency spikes in real multi-provider LLM workflows.
 
