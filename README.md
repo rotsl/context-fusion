@@ -13,6 +13,7 @@
 [![Claude API CF Success](https://img.shields.io/badge/Claude_API_with_CF-100%25-brightgreen.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![API Context Tokens](https://img.shields.io/badge/API_context_tokens-10.3_vs_947.0-blue.svg)](benchmarks/BENCHMARK_API_RESULTS.md)
 [![Modes](https://img.shields.io/badge/modes-chat%20%7C%20qa%20%7C%20code%20%7C%20agent-orange.svg)](#usage-flowcharts)
+![NPM Downloads](https://img.shields.io/npm/dm/%40rotsl%2Fcontextfusion)
 
 
 
